@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bit.exe</title>
+<meta name="description" content="Bit.exe: un juego de plataformas en pixel art. Bit sale de la Red para eliminar a los virus que se han escapado.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+<div id="marco">
+  <canvas id="juego" width="320" height="180" aria-label="Juego de plataformas: Bit recorre la Red eliminando virus hasta la medalla de cada nivel"></canvas>
+
+  <div class="hud">
+    <div class="izquierda">
+      <svg class="bateria" id="bateria" role="img" aria-label="Batería: 3 rayas" shape-rendering="crispEdges"></svg>
+      <div class="monedas" aria-live="polite"><span class="moneda" aria-hidden="true"></span><span id="contador" title="Monedas acumuladas / próxima batería extra">0 / 50</span></div>
+      <div class="mejora" id="mejora" hidden><span id="mejoraNombre"></span><span class="extra" id="mejoraExtra"></span></div>
+    </div>
+    <div class="derecha">
+      <div class="puntos" id="puntos" aria-label="Puntos">000000</div>
+      <button id="abrirAjustes" class="boton" type="button" title="Ajustes (Esc)">AJUSTES</button>
+    </div>
+  </div>
+
+  <div class="aviso oculto" id="aviso" aria-live="polite"></div>
+  <div class="aviso-coger" id="avisoCoger" hidden></div>
+  <div class="barra-jefe" id="barraJefe" hidden><span>ARCADE CORRUPTO</span><div class="vida"><i id="vidaJefe"></i></div></div>
+
+  <div class="panel" id="panelInicio">
+    <h1 class="titulo">BIT<span>.EXE</span></h1>
+    <p>Unos virus se han escapado por la Red. Bit ha salido de ella para eliminarlos, mundo a mundo.</p>
+    <div class="mundos" role="group" aria-label="Mundos">
+      <div class="mundo activo"><b>MUNDO 1</b><span>La Red · 20 niveles</span></div>
+      <div class="mundo bloqueado" aria-label="Mundo 2: próximamente"><b>MUNDO 2</b><span class="pronto">PRÓXIMAMENTE</span></div>
+    </div>
+    <div class="selector">
+      <button class="boton secundario" id="nivelMenos" type="button" aria-label="Nivel anterior">◀</button>
+      <div class="nivel" id="nivelSel" aria-live="polite"></div>
+      <button class="boton secundario" id="nivelMas" type="button" aria-label="Nivel siguiente">▶</button>
+    </div>
+    <p class="tenue" id="ayudaControles"></p>
+    <p class="llamada">PULSA UNA TECLA PARA EMPEZAR</p>
+    <p><button class="boton secundario" id="verRanking" type="button">RANKING</button></p>
+    <p class="aviso-tactil">Por ahora se juega con teclado y ratón; los controles táctiles llegarán en otra versión.</p>
+  </div>
+
+  <!-- Panel de fin: sirve para la victoria y para la derrota -->
+  <div class="panel" id="panelFin" hidden>
+    <h1 class="oro" id="finTitulo">¡MEDALLA!</h1>
+    <p id="finTexto"></p>
+    <p id="finMonedas" class="tenue"></p>
+    <p id="finPuntos" class="resumen"></p>
+    <form class="form-ranking" id="formRanking" hidden>
+      <label for="nombreRanking">¡Entras en el ranking! Tu nombre:</label>
+      <div class="fila-form">
+        <input type="text" id="nombreRanking" maxlength="10" autocomplete="off" spellcheck="false">
+        <button class="boton" type="submit">GUARDAR</button>
+        <button class="boton secundario" type="button" id="noGuardar">NO GUARDAR</button>
+      </div>
+    </form>
+    <table class="ranking" id="rankingFin" hidden><thead><tr><th>#</th><th>Nombre</th><th>Puntos</th><th>Nivel</th></tr></thead><tbody></tbody></table>
+    <p class="llamada" id="finLlamada"></p>
+    <p id="finBotones" hidden><button class="boton secundario" id="irMenu" type="button">MENÚ</button></p>
+  </div>
+
+  <!-- Ranking (desde el inicio) -->
+  <div class="panel" id="panelRanking" role="dialog" aria-modal="true" aria-labelledby="tituloRanking" hidden>
+    <h1 id="tituloRanking">RANKING</h1>
+    <table class="ranking"><thead><tr><th>#</th><th>Nombre</th><th>Puntos</th><th>Nivel</th></tr></thead><tbody id="rankingInicio"></tbody></table>
+    <p class="tenue">Puntuaciones guardadas en este navegador.</p>
+    <p><button class="boton" id="cerrarRanking" type="button">CERRAR</button></p>
+  </div>
+
+  <!-- Ajustes: apartado Sonido y apartado Controles -->
+  <div class="panel ajustes" id="panelAjustes" role="dialog" aria-modal="true" aria-labelledby="tituloAjustes" hidden>
+    <div class="cabecera">
+      <h2 id="tituloAjustes">AJUSTES</h2>
+      <button class="boton" id="cerrarAjustes" type="button">CERRAR</button>
+    </div>
+    <div class="pestanas" role="tablist">
+      <button class="pestana" role="tab" id="tabSonido" aria-controls="apSonido" aria-selected="true" type="button">SONIDO</button>
+      <button class="pestana" role="tab" id="tabControles" aria-controls="apControles" aria-selected="false" type="button">CONTROLES</button>
+    </div>
+
+    <section class="apartado" id="apSonido" role="tabpanel" aria-labelledby="tabSonido">
+      <div class="fila">
+        <span>Música</span>
+        <button class="boton interruptor" id="botonMusica" type="button" aria-pressed="true">SÍ</button>
+      </div>
+      <div class="fila">
+        <label for="volumen">Volumen</label>
+        <input type="range" id="volumen" min="0" max="100" step="5" value="50">
+      </div>
+      <p class="nota">Atajo: la tecla M activa o silencia la música durante la partida.</p>
+    </section>
+
+    <section class="apartado" id="apControles" role="tabpanel" aria-labelledby="tabControles" hidden>
+      <table>
+        <thead><tr><th>Acción</th><th>Tecla 1</th><th>Tecla 2</th><th>Tecla 3</th></tr></thead>
+        <tbody id="tablaControles"></tbody>
+      </table>
+      <p class="nota">Pulsa una casilla y luego la tecla o el botón del ratón. Esc cancela · Retroceso la vacía.</p>
+      <div class="acciones">
+        <p class="nota aviso-tecla" id="avisoTecla" aria-live="polite"></p>
+        <button class="boton secundario" id="restablecer" type="button">RESTABLECER</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<audio id="musica" loop preload="auto">
+  <source src="musica/musica-bucle.ogg" type="audio/ogg">
+  <source src="musica/musica-bucle.mp3" type="audio/mpeg">
+</audio>
+
+<!-- El orden importa: cada archivo usa lo que cargan los anteriores (ver LEEME.md) -->
+<script src="js/configuracion.js"></script>
+<script src="js/niveles.js"></script>
+<script src="js/graficos.js"></script>
+<script src="js/estado.js"></script>
+<script src="js/controles.js"></script>
+<script src="js/musica.js"></script>
+<script src="js/interfaz.js"></script>
+<script src="js/fisica.js"></script>
+<script src="js/enemigos.js"></script>
+<script src="js/bit.js"></script>
+<script src="js/partida.js"></script>
+<script src="js/dibujo.js"></script>
+<script src="js/bucle.js"></script>
+</body>
+</html>
