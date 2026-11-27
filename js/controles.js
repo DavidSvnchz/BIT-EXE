@@ -117,6 +117,7 @@ addEventListener('mousedown', e => {
     asignarCaptura('Raton' + e.button);
     return;
   }
+  if (performance.now() - (window.__ultimoTactil || 0) < 800) return;   // clic simulado tras un toque (móvil)
   if (ajustesAbiertos() || !marco.contains(e.target) || e.target.closest('button, input, form, .ajustes, table')) return;
   e.preventDefault();
   const cod = 'Raton' + e.button;

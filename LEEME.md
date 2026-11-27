@@ -95,6 +95,7 @@ js/
   bit.js                el personaje: movimiento, ataques, mejoras, daño
   partida.js            flujo: cargar nivel, puntos, monedas, victoria/derrota
   dibujo.js             pinta cada fotograma
+  tactil.js             controles táctiles para móvil
   bucle.js              el bucle principal y el arranque
 herramientas/
   generar_niveles.py    genera los niveles 2-20 dentro de js/niveles.js
@@ -159,6 +160,9 @@ se actualiza sola. Después léela en `pasoBit()` con `pulsadas.has('…')` o `p
 
 **Mundo 2** → cuando llegue, lo natural será un `js/niveles-mundo2.js` con sus mapas y cambiar `MUNDO`
 en `configuracion.js` para elegir entre mundos.
+
+## Móvil
+El juego detecta solo si se abre en un dispositivo táctil (o en cuanto se toca la pantalla) y muestra, mientras se juega, una cruceta casi transparente a la izquierda (◀ ▶ moverse, ▲ saltar, ▼ coger, doble toque ◀ ▶ teletransporte) y los botones A (saltar) y B (atacar) a la derecha; ⇄ (cambiar arma) aparece solo con la espada. En PC no cambia nada. Código: `js/tactil.js`.
 
 ## Mundos
 - Mundo 1 · La Red: los 20 niveles actuales (1-1 a 1-20), con el Arcade Corrupto como jefe final.

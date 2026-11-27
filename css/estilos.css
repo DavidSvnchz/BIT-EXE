@@ -100,8 +100,37 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--cian);outline-o
 .panel .tenue{color:var(--gris)}
 .panel .llamada{font-family:Anton,Impact,sans-serif;color:var(--cian);font-size:max(14px,calc(var(--s)*8px));letter-spacing:.03em;
   animation:parpadeo 1s steps(1,end) infinite}
-.panel .aviso-tactil{color:var(--gris);display:none}
-@media (pointer:coarse){.panel .aviso-tactil{display:block}}
+.panel .aviso-tactil,.panel .aviso-girar{color:var(--gris);display:none}
+.movil .panel .aviso-tactil{display:block}
+.movil #ayudaControles{display:none}
+@media (orientation:portrait){.movil .panel .aviso-girar{display:block;color:var(--dorado)}}
+
+/* ---------- Controles táctiles (móvil) ---------- */
+html.movil,html.movil body{touch-action:none;overscroll-behavior:none;-webkit-touch-callout:none}
+.tactil{position:fixed;inset:0;z-index:20;pointer-events:none;transition:opacity .2s}
+.tactil[hidden],.tactil.oculto{display:none}
+.cruceta{position:absolute;left:calc(env(safe-area-inset-left) + 18px);bottom:calc(env(safe-area-inset-bottom) + 18px);
+  width:150px;height:150px;pointer-events:auto;touch-action:none;border-radius:50%;
+  background:rgba(243,238,227,.10);box-shadow:inset 0 0 0 2px rgba(243,238,227,.28)}
+.cruceta .flecha{position:absolute;width:46px;height:46px;display:grid;place-items:center;font-size:20px;
+  color:rgba(243,238,227,.55);background:rgba(18,15,31,.25);border-radius:12px}
+.cruceta .arr{left:52px;top:6px}.cruceta .aba{left:52px;bottom:6px}
+.cruceta .izq{left:6px;top:52px}.cruceta .der{right:6px;top:52px}
+.cruceta[data-dir~="izq"] .izq,.cruceta[data-dir~="der"] .der,.cruceta[data-dir~="saltar"] .arr,.cruceta[data-dir~="coger"] .aba{
+  background:rgba(200,241,53,.35);color:rgba(243,238,227,.9)}
+.botones-t{position:absolute;right:calc(env(safe-area-inset-right) + 18px);bottom:calc(env(safe-area-inset-bottom) + 18px);
+  width:170px;height:150px;pointer-events:none}
+.btn-t{position:absolute;pointer-events:auto;touch-action:none;width:72px;height:72px;border-radius:50%;
+  font-family:Anton,Impact,sans-serif;font-size:30px;line-height:1;color:rgba(243,238,227,.75);
+  background:rgba(243,238,227,.10);border:2px solid rgba(243,238,227,.3);-webkit-user-select:none;user-select:none}
+.btn-t.a{right:0;top:0;color:rgba(200,241,53,.85);border-color:rgba(200,241,53,.4)}
+.btn-t.b{left:0;bottom:0;color:rgba(255,61,127,.85);border-color:rgba(255,61,127,.4)}
+.btn-t.mini{width:48px;height:48px;font-size:22px;left:4px;top:4px;color:rgba(155,77,255,.9);border-color:rgba(155,77,255,.5)}
+.btn-t.mini[hidden]{display:none}
+.btn-t.activo{background:rgba(243,238,227,.32);transform:scale(.94)}
+@media (max-height:420px){.cruceta{width:130px;height:130px}.cruceta .flecha{width:40px;height:40px}
+  .cruceta .arr{left:45px}.cruceta .aba{left:45px}.cruceta .izq,.cruceta .der{top:45px}
+  .botones-t{width:150px;height:130px}.btn-t{width:64px;height:64px}}
 @keyframes parpadeo{50%{opacity:0}}
 .mundos{display:flex;justify-content:center;gap:calc(var(--s)*6px);margin-top:calc(var(--s)*4px)}
 .mundo{display:flex;flex-direction:column;align-items:center;gap:calc(var(--s)*1px);min-width:calc(var(--s)*72px);

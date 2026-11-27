@@ -99,8 +99,9 @@ function terminar(gana) {
   document.getElementById('finPuntos').textContent = 'PUNTOS: ' + partida.puntos;
   finDePartida = !gana || ultimo;
   const llamada = document.getElementById('finLlamada');
-  llamada.textContent = !gana ? 'PULSA UNA TECLA PARA EMPEZAR UNA PARTIDA NUEVA EN ESTE NIVEL'
-    : ultimo ? 'PULSA UNA TECLA PARA VOLVER AL MENÚ' : 'PULSA UNA TECLA PARA EL SIGUIENTE NIVEL';
+  const pulsa = window.PULSA_TXT || 'PULSA UNA TECLA';   // «TOCA LA PANTALLA» en móvil (tactil.js)
+  llamada.textContent = !gana ? pulsa + ' PARA EMPEZAR UNA PARTIDA NUEVA EN ESTE NIVEL'
+    : ultimo ? pulsa + ' PARA VOLVER AL MENÚ' : pulsa + ' PARA EL SIGUIENTE NIVEL';
   document.getElementById('rankingFin').hidden = true;
   document.getElementById('finBotones').hidden = !finDePartida;
   panelFin.hidden = false;

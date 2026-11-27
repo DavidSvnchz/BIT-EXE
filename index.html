@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Bit.exe</title>
 <meta name="description" content="Bit.exe: un juego de plataformas en pixel art. Bit sale de la Red para eliminar a los virus que se han escapado.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,9 +43,10 @@
       <button class="boton secundario" id="nivelMas" type="button" aria-label="Nivel siguiente">▶</button>
     </div>
     <p class="tenue" id="ayudaControles"></p>
-    <p class="llamada">PULSA UNA TECLA PARA EMPEZAR</p>
+    <p class="llamada" id="llamadaInicio">PULSA UNA TECLA PARA EMPEZAR</p>
     <p><button class="boton secundario" id="verRanking" type="button">RANKING</button></p>
-    <p class="aviso-tactil">Por ahora se juega con teclado y ratón; los controles táctiles llegarán en otra versión.</p>
+    <p class="aviso-tactil">Cruceta: moverse · ▲ saltar · ▼ coger · doble toque ◀ ▶ teletransporte (espada). A salta, B ataca.</p>
+    <p class="aviso-girar">Gira el móvil para jugar en horizontal.</p>
   </div>
 
   <!-- Panel de fin: sirve para la victoria y para la derrota -->
@@ -117,6 +118,18 @@
   <source src="musica/musica-bucle.mp3" type="audio/mpeg">
 </audio>
 
+<!-- Controles táctiles (solo aparecen en móvil) -->
+<div class="tactil oculto" id="tactil" hidden>
+  <div class="cruceta" id="cruceta" aria-hidden="true">
+    <span class="flecha arr">▲</span><span class="flecha izq">◀</span><span class="flecha der">▶</span><span class="flecha aba">▼</span>
+  </div>
+  <div class="botones-t">
+    <button class="btn-t mini" id="btnArma" type="button" data-accion="cambiarArma" aria-label="Cambiar arma" hidden>⇄</button>
+    <button class="btn-t b" id="btnB" type="button" data-accion="disparar" aria-label="Atacar">B</button>
+    <button class="btn-t a" id="btnA" type="button" data-accion="saltar" aria-label="Saltar">A</button>
+  </div>
+</div>
+
 <!-- El orden importa: cada archivo usa lo que cargan los anteriores (ver LEEME.md) -->
 <script src="js/configuracion.js"></script>
 <script src="js/niveles.js"></script>
@@ -129,6 +142,7 @@
 <script src="js/enemigos.js"></script>
 <script src="js/bit.js"></script>
 <script src="js/partida.js"></script>
+<script src="js/tactil.js"></script>
 <script src="js/dibujo.js"></script>
 <script src="js/bucle.js"></script>
 </body>
