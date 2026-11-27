@@ -16,8 +16,10 @@ const musica = {
   ac: null, ganancia: null, modo: null,
 
   iniciar() {
-    if (this.iniciada) return;
+    if (this.iniciada) { this.desbloquear(); return; }
     this.iniciada = true;
+    // iPhone: que suene como música aunque el móvil esté en silencio (Safari 17+)
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (err) {}
     const AC = window.AudioContext || window.webkitAudioContext;
     if (AC && location.protocol !== 'file:') {   // Web Audio: bucle sin cortes
       try {
@@ -41,6 +43,12 @@ const musica = {
       } catch (err) {}
     }
     this.usarElemento();
+  },
+  // Los móviles solo dejan arrancar el sonido en ciertos gestos (al levantar el dedo,
+  // un clic, una tecla): si quedó en pausa, se reanuda en el siguiente.
+  desbloquear() {
+    if (this.ac && this.ac.state !== 'running') this.ac.resume().catch(() => {});
+    if (this.modo === 'elemento' && elAudio.paused && !document.hidden) elAudio.play().catch(() => {});
   },
   usarElemento() {
     this.modo = 'elemento';
@@ -68,6 +76,10 @@ try {
 } catch (err) {}
 musica.aplicar();
 botonMusica.addEventListener('click', () => { musica.alternar(); musica.iniciar(); });
+// Gestos que los navegadores aceptan para activar el sonido (en el móvil, al levantar el dedo)
+for (const tipo of ['touchend', 'pointerup', 'click', 'keydown']) {
+  addEventListener(tipo, () => musica.iniciar(), { capture: true, passive: true });
+}
 sliderVolumen.addEventListener('input', () => { musica.cambiarVolumen(sliderVolumen.value / 100); musica.iniciar(); });
 document.addEventListener('visibilitychange', () => {
   if (!musica.iniciada) return;
