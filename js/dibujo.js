@@ -196,7 +196,8 @@ function dibujarProyectiles(cx, cy) {
   }
   for (const p of particulas) {
     ctx.fillStyle = p.color;
-    ctx.fillRect(Math.round(p.x) - cx, Math.round(p.y) - cy, p.t < p.vida * 0.5 ? 2 : 1, p.t < p.vida * 0.5 ? 2 : 1);
+    const tam = p.tam ? (p.t < p.vida * 0.6 ? p.tam : 1) : (p.t < p.vida * 0.5 ? 2 : 1);
+    ctx.fillRect(Math.round(p.x) - cx, Math.round(p.y) - cy, tam, tam);
   }
 }
 
@@ -219,7 +220,7 @@ function textoPixel(txt, x, y, color) {
 
 function dibujar() {
   let cx = Math.round(camX), cy = Math.round(camY);
-  if (temblor > 0) { cx += Math.round((Math.random() - 0.5) * 3); cy += Math.round((Math.random() - 0.5) * 3); }
+  if (temblor > 0) { cx += Math.round((Math.random() - 0.5) * fuerzaTemblor); cy += Math.round((Math.random() - 0.5) * fuerzaTemblor); }
 
   ctx.fillStyle = PAL.noche; ctx.fillRect(0, 0, ANCHO, ALTO);
   capaRepetida(capaEstrellas, 0.05, 0);
@@ -234,9 +235,15 @@ function dibujar() {
     if (v !== AIRE && c >= 0 && c < cols) dibujarCasilla(v, c, f, c * T - cx, f * T - cy);
   }
 
+  dibujarCarteles(cx, cy);
   dibujarEnemigos(cx, cy);
   dibujarBit(cx, cy);
   dibujarProyectiles(cx, cy);
   for (const tx of textos) if (Math.floor(tx.t * 20) % 2 || tx.t < 0.6)
     textoPixel(tx.txt, Math.round(tx.x) - cx, Math.round(tx.y) - cy, tx.malo ? PAL.fucsia : PAL.dorado);
+  if (destello > 0) {   // destello de pantalla al recibir un golpe o al caer el jefe
+    ctx.globalAlpha = Math.min(0.45, destello * 3);
+    ctx.fillStyle = colorDestello; ctx.fillRect(0, 0, ANCHO, ALTO);
+    ctx.globalAlpha = 1;
+  }
 }

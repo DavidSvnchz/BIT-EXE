@@ -147,7 +147,7 @@ html.movil,html.movil body{touch-action:none;overscroll-behavior:none;-webkit-to
 .selector .nivel small{display:block;font-family:system-ui,sans-serif;font-size:max(12px,calc(var(--s)*5px));color:var(--gris);letter-spacing:0}
 
 /* ---------- Ajustes ---------- */
-.ajustes{z-index:5;text-align:left;width:min(94%,calc(var(--s)*270px));max-height:96%;overflow:auto;
+.ajustes{z-index:5;text-align:left;width:min(96%,calc(var(--s)*300px));max-height:96%;overflow:auto;
   padding:calc(var(--s)*5px) calc(var(--s)*10px) calc(var(--s)*5px);font-size:max(13px,calc(var(--s)*5.2px))}
 .ajustes .cabecera{display:flex;justify-content:space-between;align-items:center;gap:12px}
 .ajustes h2{font-size:max(22px,calc(var(--s)*11px));color:var(--lima);text-shadow:calc(var(--s)*1.5px) calc(var(--s)*1.5px) 0 var(--fucsia)}
@@ -164,7 +164,10 @@ input[type=range]{width:min(100%,calc(var(--s)*110px));accent-color:var(--lima);
 table{width:100%;border-collapse:collapse}
 th{font-weight:400;color:var(--gris);text-align:left;padding:calc(var(--s)*1px) calc(var(--s)*2px)}
 td{padding:calc(var(--s)*1px) calc(var(--s)*2px)}
-th:not(:first-child),td:not(:first-child){width:24%}
+th:not(:first-child),td:not(:first-child){width:19%}
+th.col-mando{color:var(--cian)}
+td:last-child .tecla{border-color:rgba(51,214,230,.45)}
+.tecla.foco-mando{outline:2px solid var(--cian);outline-offset:1px}
 td:first-child{color:var(--crema);white-space:nowrap;padding-right:calc(var(--s)*4px)}
 .tecla{width:100%;min-height:28px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   background:var(--noche);color:var(--crema);border:calc(var(--s)*1px) solid var(--tinta2);padding:calc(var(--s)*1px) calc(var(--s)*3px)}
@@ -174,4 +177,50 @@ td:first-child{color:var(--crema);white-space:nowrap;padding-right:calc(var(--s)
 .nota{color:var(--gris);margin:calc(var(--s)*3px) 0 0}
 .nota.aviso-tecla{color:var(--dorado);margin:0;flex:1 1 12em}
 .acciones{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-top:calc(var(--s)*2px)}
-@media (prefers-reduced-motion:reduce){.panel .llamada,.tecla.esperando,.bateria.golpe,.bateria.critica .baja{animation:none}}
+
+/* ---------- Tutorial del 1-1: pista arriba ---------- */
+.pista{position:absolute;left:50%;top:calc(var(--s)*42px);transform:translateX(-50%);pointer-events:none;white-space:nowrap;
+  font-family:Anton,Impact,sans-serif;font-size:max(13px,calc(var(--s)*7px));letter-spacing:.03em;color:var(--crema);
+  background:rgba(30,26,51,.88);padding:calc(var(--s)*2px) calc(var(--s)*6px);
+  box-shadow:0 0 0 calc(var(--s)*1px) var(--lima),calc(var(--s)*2px) calc(var(--s)*2px) 0 calc(var(--s)*1px) var(--fucsia);
+  animation:entraPista .25s ease-out}
+.pista b{color:var(--lima);font-weight:400}
+.pista[hidden]{display:none}
+@keyframes entraPista{from{opacity:0;transform:translate(-50%,calc(var(--s)*-4px))}}
+
+/* ---------- Historia ---------- */
+.historia{width:min(92%,calc(var(--s)*200px))}
+.historia canvas{display:block;width:100%;aspect-ratio:128/72;image-rendering:pixelated;
+  box-shadow:0 0 0 calc(var(--s)*1px) var(--tinta2)}
+.historia #textoHistoria{font-family:Anton,Impact,sans-serif;font-size:max(15px,calc(var(--s)*8px));letter-spacing:.02em;line-height:1.15;
+  min-height:2.4em;margin-top:calc(var(--s)*5px)}
+.historia #textoHistoria b{color:var(--lima);font-weight:400}
+.historia .llamada{font-size:max(13px,calc(var(--s)*6px))}
+.pie-historia{display:flex;justify-content:space-between;align-items:center;margin-top:calc(var(--s)*3px)}
+.botones-inicio .boton{margin:0 calc(var(--s)*2px)}
+
+/* ---------- Fin: ascenso, puesto mundial y tipo de ranking ---------- */
+.arte-fin{display:block;margin:0 auto calc(var(--s)*2px);width:calc(var(--s)*62px);image-rendering:pixelated}
+.arte-fin[hidden]{display:none}
+.panel .puesto{color:var(--cian)}
+.panel .puesto:empty{display:none}
+.panel .tipo-ranking{font-family:Anton,Impact,sans-serif;color:var(--gris);letter-spacing:.06em;margin-bottom:0}
+.panel .tipo-ranking[hidden]{display:none}
+
+/* ---------- Móvil en vertical: aviso de girar ---------- */
+.girar{display:none;position:fixed;inset:0;z-index:50;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:rgba(18,15,31,.96);text-align:center;font-family:Anton,Impact,sans-serif;color:var(--lima);
+  text-shadow:3px 3px 0 var(--fucsia)}
+.girar p{margin:0;font-size:34px;letter-spacing:.04em}
+.girar small{font-family:system-ui,sans-serif;color:var(--gris);text-shadow:none;font-size:15px}
+.icono-movil{width:54px;height:92px;border:5px solid var(--crema);border-radius:10px;position:relative;
+  animation:girarMovil 2.2s ease-in-out infinite;box-shadow:0 0 30px rgba(155,77,255,.6)}
+.icono-movil i{position:absolute;left:50%;bottom:6px;width:12px;height:4px;margin-left:-6px;background:var(--crema);border-radius:2px}
+@keyframes girarMovil{0%,20%{transform:rotate(0)}50%,80%{transform:rotate(-90deg)}100%{transform:rotate(0)}}
+@media (orientation:portrait){html.movil .girar{display:flex}}
+
+@media (prefers-reduced-motion:reduce){.panel .llamada,.tecla.esperando,.bateria.golpe,.bateria.critica .baja,.icono-movil,.pista{animation:none}}
+
+.panel b.malo{color:var(--fucsia);font-weight:600}
+.panel #finPuntos,.panel #finPuesto{display:inline-block;margin-left:calc(var(--s)*4px);margin-right:calc(var(--s)*4px)}
+.panel #finMonedas[hidden]{display:none}

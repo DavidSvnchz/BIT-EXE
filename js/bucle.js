@@ -9,13 +9,14 @@
 function pasoEfectos(dt) {
   for (const r of rayos) r.t += dt;
   rayos = rayos.filter(r => r.t < 0.2);
-  for (const p of particulas) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; }
+  for (const p of particulas) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (p.peso || 120) * dt; }
   particulas = particulas.filter(p => p.t < p.vida);
   for (const tx of textos) { tx.t += dt; tx.y -= 18 * dt; }
   textos = textos.filter(tx => tx.t < 0.9);
   for (const f of fantasmas) f.t += dt;
   fantasmas = fantasmas.filter(f => f.t < 0.35);
   if (temblor > 0) temblor -= dt;
+  if (destello > 0) destello -= dt;
   // chispas de ambiente según la mejora
   if (mejora === 'espada' && Math.random() < 0.3)
     particulas.push({ x: bit.x + Math.random() * bit.w, y: bit.y + 4 + Math.random() * 10, vx: 0, vy: -20, t: 0, vida: 0.4, color: PAL.violeta });
@@ -30,6 +31,7 @@ function paso(dt) {
   if (estado === 'jugando') pasoProyectiles(dt);
   pasoEfectos(dt);
   pintarJefe();
+  pasoTutorial();
   pedidas.clear();
   centrarCamara(Math.min(1, dt * 8));
 }
@@ -50,8 +52,11 @@ let ultimo = performance.now(), acumulado = 0;
 function bucle(ahora) {
   const dt = Math.min((ahora - ultimo) / 1000, 0.1) * (opcionesPrueba.velocidad || 1);
   ultimo = ahora;
-  if (!ajustesAbiertos()) tiempo += dt;
-  if (estado === 'jugando' && !ajustesAbiertos()) {
+  const pausa = ajustesAbiertos() || enVertical();   // en el móvil, en vertical, se pausa
+  if (!pausa) tiempo += dt;
+  if (estado === 'jugando' && !pausa && congelado > 0) {   // parón de un instante al golpear
+    congelado -= dt; acumulado = 0;
+  } else if (estado === 'jugando' && !pausa) {
     acumulado += dt;
     while (acumulado >= PASO && estado === 'jugando') { paso(PASO); acumulado -= PASO; }
   } else {

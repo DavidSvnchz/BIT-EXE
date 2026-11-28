@@ -46,7 +46,7 @@ function escaparHTML(t) {
 }
 function pintarTablaControles() {
   tablaControles.innerHTML = ACCIONES.map(a => '<tr><td>' + a.nombre + '</td>' +
-    [0, 1, 2].map(h => {
+    [0, 1, 2, HUECO_MANDO].map(h => {
       const cod = controles[a.id][h];
       const esperando = capturando && capturando.accion === a.id && capturando.hueco === h;
       const clases = 'tecla' + (cod ? '' : ' vacia') + (esperando ? ' esperando' : '');
@@ -58,12 +58,18 @@ tablaControles.addEventListener('click', e => {
   const b = e.target.closest('.tecla');
   if (!b) return;
   capturando = { accion: b.dataset.accion, hueco: Number(b.dataset.hueco) };
-  avisoTecla.textContent = 'Pulsa la tecla o el botón del ratón para «' + ACCIONES.find(a => a.id === capturando.accion).nombre + '».';
+  avisoTecla.textContent = (capturando.hueco === HUECO_MANDO ? 'Pulsa el botón del mando' : 'Pulsa la tecla o el botón del ratón') +
+    ' para «' + ACCIONES.find(a => a.id === capturando.accion).nombre + '».';
   pintarTablaControles();
 });
 function asignarCaptura(cod) {
   const { accion, hueco } = capturando;
   if (cod === 'Escape') { cancelarCaptura(); return; }
+  const casillaMando = hueco === HUECO_MANDO, borrar = cod === 'Backspace' || cod === 'Delete';
+  if (!borrar && casillaMando !== esCodigoMando(cod)) {
+    avisoTecla.textContent = casillaMando ? 'Esta casilla es del mando: pulsa un botón o mueve un stick.' : 'Esta casilla es del teclado o el ratón.';
+    return;
+  }
   if (cod === 'Backspace' || cod === 'Delete') {
     controles[accion][hueco] = null;
     capturando = null; avisoTecla.textContent = 'Casilla vaciada.';
@@ -150,7 +156,7 @@ document.getElementById('nivelMenos').addEventListener('click', e => { e.current
 document.getElementById('nivelMas').addEventListener('click', e => { e.currentTarget.blur(); elegirNivel(1); });
 pintarSelector();
 
-// ---------- Ranking (guardado en este navegador) ----------
+// ---------- Ranking: mundial (api/ranking.js en Vercel) y, de respaldo, el de este navegador ----------
 const formRanking = document.getElementById('formRanking');
 const inputNombre = document.getElementById('nombreRanking');
 function leerRanking() {
@@ -159,9 +165,22 @@ function leerRanking() {
     return Array.isArray(r) ? r.filter(e => e && typeof e.puntos === 'number').slice(0, RANKING_MAX) : [];
   } catch (err) { return []; }
 }
+const mundial = { lista: null };   // null = no disponible (sin conexión, sin configurar o con doble clic)
+function pedirMundial(opciones) {
+  if (!/^https?:$/.test(location.protocol)) return Promise.reject(new Error('local'));
+  const control = new AbortController();
+  const espera = setTimeout(() => control.abort(), 5000);
+  return fetch('/api/ranking', { ...opciones, signal: control.signal, headers: { 'Content-Type': 'application/json' } })
+    .then(r => r.ok ? r.json() : Promise.reject(new Error(r.status)))
+    .then(d => { if (Array.isArray(d.top)) mundial.lista = d.top; return d; })
+    .finally(() => clearTimeout(espera));
+}
+function cargarMundial() { return pedirMundial({}).catch(() => {}); }
+cargarMundial();
 function entraEnRanking(p) {
-  const r = leerRanking();
-  return p > 0 && (r.length < RANKING_MAX || p > r[r.length - 1].puntos);
+  const r = leerRanking(), m = mundial.lista;
+  return p > 0 && (r.length < RANKING_MAX || p > r[r.length - 1].puntos ||
+    (m !== null && (m.length < RANKING_MAX || p > m[m.length - 1].puntos)));
 }
 function anadirRanking(nombre, puntos, nivel) {
   const r = leerRanking(), entrada = { nombre, puntos, mundo: MUNDO.numero, nivel, fecha: Date.now() };
@@ -171,17 +190,20 @@ function anadirRanking(nombre, puntos, nivel) {
   try { localStorage.setItem('bit-ranking', JSON.stringify(top)); } catch (err) {}
   return top.indexOf(entrada);
 }
-function pintarRanking(tbody, maxFilas, resaltar) {
-  const r = leerRanking();
+function pintarRanking(tbody, maxFilas, resaltar, lista) {
+  const r = lista || leerRanking();
   tbody.innerHTML = r.length ? r.slice(0, maxFilas).map((e, i) =>
     '<tr' + (i === resaltar ? ' class="nuevo"' : '') + '><td>' + (i + 1) + '</td><td>' + escaparHTML(e.nombre) +
     '</td><td>' + escaparHTML(Number(e.puntos)) + '</td><td>' + escaparHTML((Number(e.mundo) || 1) + '-' + (Number(e.nivel) || '?')) + '</td></tr>').join('')
     : '<tr><td colspan="4">Todavía no hay puntuaciones.</td></tr>';
 }
-function mostrarRankingFin(resaltar) {
+function mostrarRankingFin(resaltar, esMundial) {
   const tabla = document.getElementById('rankingFin');
-  pintarRanking(tabla.querySelector('tbody'), 5, resaltar);
+  if (esMundial === undefined) esMundial = mundial.lista !== null && resaltar < 0;
+  pintarRanking(tabla.querySelector('tbody'), 5, resaltar, esMundial ? mundial.lista : null);
   tabla.hidden = false;
+  document.getElementById('tipoRankingFin').textContent = esMundial ? 'RANKING MUNDIAL' : 'RANKING DE ESTE NAVEGADOR';
+  document.getElementById('tipoRankingFin').hidden = false;
   const llamada = document.getElementById('finLlamada');
   llamada.hidden = false;
   if (resaltar >= 5) llamada.textContent = 'PUESTO ' + (resaltar + 1) + ' · ' + llamada.textContent;
@@ -193,6 +215,18 @@ function cerrarFormulario(guardar) {
     const nombre = (inputNombre.value.trim().toUpperCase().slice(0, 10)) || 'BIT';
     try { localStorage.setItem('bit-nombre', nombre); } catch (err) {}
     puesto = anadirRanking(nombre, partida.puntos, nivelActual + 1);
+    const puntos = partida.puntos;
+    pedirMundial({ method: 'POST', body: JSON.stringify({ nombre, puntos, nivel: nivelActual + 1 }) })
+      .then(d => {
+        medir('ranking_mundial', { puesto: d.puesto + 1 });
+        if (!panelFin.hidden && !esperandoNombre) {
+          const llamada = document.getElementById('finLlamada');
+          llamada.textContent = llamada.textContent.replace(/^PUESTO \d+ · /, '');
+          mostrarRankingFin(d.puesto, true);
+          if (d.puesto >= 0) document.getElementById('finPuesto').textContent = 'PUESTO MUNDIAL: #' + (d.puesto + 1);
+        }
+      })
+      .catch(() => {});
   }
   esperandoNombre = false;
   formRanking.hidden = true;
@@ -215,7 +249,13 @@ document.getElementById('irMenu').addEventListener('click', e => { e.currentTarg
 const panelRanking = document.getElementById('panelRanking');
 document.getElementById('verRanking').addEventListener('click', e => {
   e.currentTarget.blur();
-  pintarRanking(document.getElementById('rankingInicio'), RANKING_MAX, -1);
+  const pintar = () => {
+    pintarRanking(document.getElementById('rankingInicio'), RANKING_MAX, -1, mundial.lista);
+    document.getElementById('notaRanking').textContent = mundial.lista !== null
+      ? 'Ranking mundial: los mejores de todos los jugadores.' : 'Puntuaciones guardadas en este navegador.';
+  };
+  pintar();
+  cargarMundial().then(() => { if (!panelRanking.hidden) pintar(); });
   panelRanking.hidden = false;
 });
 document.getElementById('cerrarRanking').addEventListener('click', () => { panelRanking.hidden = true; });
@@ -228,3 +268,28 @@ function pintarJefe() {
   document.getElementById('vidaJefe').style.width = Math.max(0, e.vida / e.vidaMax * 100) + '%';
   barraJefe.classList.toggle('fase2', e.fase2);
 }
+
+// ---------- Compartir la puntuación ----------
+function textoCompartir() {
+  const url = /^https?:$/.test(location.protocol) ? location.origin : 'https://bit-exe.vercel.app';
+  const ganado = estado === 'victoria' && nivelActual === NIVELES.length - 1;
+  return {
+    title: 'Bit.exe',
+    text: (ganado ? '¡He derrotado a Malware Smith' : 'He llegado al nivel ' + etiqueta(nivelActual)) +
+      ' en Bit.exe con ' + partida.puntos + ' puntos. ¿Me superas?',
+    url
+  };
+}
+document.getElementById('compartir').addEventListener('click', async e => {
+  e.currentTarget.blur();
+  const d = textoCompartir();
+  medir('compartir', { puntos: partida.puntos });
+  try {
+    if (navigator.share) { await navigator.share(d); return; }
+    await navigator.clipboard.writeText(d.text + ' ' + d.url);
+    mostrarAviso('ENLACE COPIADO', 1.6);
+  } catch (err) {
+    if (err && err.name === 'AbortError') return;
+    mostrarAviso('NO SE HA PODIDO COMPARTIR', 1.6);
+  }
+});

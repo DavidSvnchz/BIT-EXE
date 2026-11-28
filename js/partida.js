@@ -13,6 +13,7 @@ function cargarNivel(indice, reiniciar) {
   cols = mapa[0].length;
   enemigos = []; proyectiles = []; rayos = []; particulas = []; fantasmas = []; textos = [];
   objetoCerca = null; avisoCoger.hidden = true;
+  congelado = 0; destello = 0; temblor = 0;
   const d = nivel.dificultad || 0;
   for (let f = 0; f < filas; f++) for (let c = 0; c < cols; c++) {
     const tipo = ENEMIGO_DE[mapa[f][c]];
@@ -42,6 +43,7 @@ function cargarNivel(indice, reiniciar) {
   pintarBateria(false);
   pintarMejora();
   mostrarAviso(etiqueta(indice) + ' · ' + nivel.nombre.toUpperCase(), 2.2);
+  prepararTutorial(indice);
 }
 
 function actualizarContador() {
@@ -55,10 +57,12 @@ function sumarPuntos(n, x, y) {
 }
 function sumarMoneda() {
   partida.monedas++;
+  sonido('moneda');
   sumarPuntos(PUNTOS.moneda);
   // cada 50 monedas acumuladas, una batería extra (el umbral solo sube: perder monedas no la regala otra vez)
   while (partida.monedas >= partida.proximaVida) {
     partida.proximaVida += MONEDAS.porVida;
+    sonido('bateria');
     if (bateria < BATERIA.maxima) { bateria++; pintarBateria(false); mostrarAviso('¡' + MONEDAS.porVida + ' MONEDAS! +1 BATERÍA'); }
     else { sumarPuntos(PUNTOS.vidaConBateriaLlena, bit.x, bit.y - 6); mostrarAviso('¡' + MONEDAS.porVida + ' MONEDAS! +' + PUNTOS.vidaConBateriaLlena); }
     estallido(bit.x + bit.w / 2, bit.y + 8, PAL.lima, 16);
@@ -73,6 +77,7 @@ function nuevaPartida(nivel) {
   estado = 'jugando';
   panelInicio.hidden = true;
   panelFin.hidden = true;
+  medir('partida_empezada', { nivel: etiqueta(nivel) });
 }
 
 function terminar(gana) {
@@ -87,24 +92,31 @@ function terminar(gana) {
   }
   const titulo = document.getElementById('finTitulo');
   titulo.className = gana ? 'oro' : 'peligro';
-  titulo.textContent = !gana ? '¡SIN BATERÍA!' : ultimo ? '¡MUNDO ' + MUNDO.numero + ' COMPLETADO!' : '¡NIVEL SUPERADO!';
+  titulo.textContent = !gana ? '¡SIN BATERÍA!' : ultimo ? '¡ASCENDIDO!' : '¡NIVEL SUPERADO!';
+  sonido(gana ? 'victoria' : 'derrota');
+  medir(!gana ? 'sin_bateria' : ultimo ? 'juego_completado' : 'nivel_superado', { nivel: etiqueta(nivelActual), puntos: partida.puntos });
   let bonus = 0;
   if (gana) { bonus = PUNTOS.nivel + PUNTOS.porRaya * bateria; sumarPuntos(bonus); }
   document.getElementById('finTexto').textContent = !gana
     ? 'Bit se ha quedado sin batería en «' + NIVELES[nivelActual].nombre + '». Los virus siguen sueltos…'
-    : ultimo ? 'Bit ha derrotado al Arcade Corrupto y ha limpiado La Red… pero algunos virus han huido a otro mundo. Mundo 2: próximamente.'
+    : ultimo ? 'Malware Smith ha caído: por fin, Bit recibe la Medalla al Honor y asciende a Sheriff Mayor de la Red. Mundo 2: próximamente.'
     : 'Nivel ' + etiqueta(nivelActual) + ' limpio: «' + NIVELES[nivelActual].nombre + '».';
   document.getElementById('finMonedas').textContent = 'Monedas del nivel: ' + monedas + ' de ' + totalMonedas +
     (gana ? ' · Bonus: +' + bonus + ' (nivel ' + PUNTOS.nivel + ' + ' + bateria + ' × ' + PUNTOS.porRaya + ' por batería)' : '');
   document.getElementById('finPuntos').textContent = 'PUNTOS: ' + partida.puntos;
+  document.getElementById('finMonedas').hidden = gana && ultimo;   // en el final, menos texto: que se vea el ascenso
   finDePartida = !gana || ultimo;
   const llamada = document.getElementById('finLlamada');
   const pulsa = window.PULSA_TXT || 'PULSA UNA TECLA';   // «TOCA LA PANTALLA» en móvil (tactil.js)
   llamada.textContent = !gana ? pulsa + ' PARA EMPEZAR UNA PARTIDA NUEVA EN ESTE NIVEL'
     : ultimo ? pulsa + ' PARA VOLVER AL MENÚ' : pulsa + ' PARA EL SIGUIENTE NIVEL';
   document.getElementById('rankingFin').hidden = true;
+  document.getElementById('tipoRankingFin').hidden = true;
+  document.getElementById('finPuesto').textContent = '';
+  document.getElementById('arteFin').hidden = true;
   document.getElementById('finBotones').hidden = !finDePartida;
   panelFin.hidden = false;
+  if (gana && ultimo) mostrarAscenso();
   if (finDePartida) {
     if (entraEnRanking(partida.puntos)) {
       esperandoNombre = true;
@@ -121,10 +133,12 @@ function terminar(gana) {
 // Primera tecla/clic: música y empezar; en el inicio ← → eligen nivel; en los paneles de fin, continúa.
 function alPulsar(accion) {
   musica.iniciar();
+  if (estado === 'historia') { historia.avanzar(); return true; }
   if (estado === 'inicio') {
     if (accion === 'izq' || accion === 'der') { elegirNivel(accion === 'izq' ? -1 : 1); return true; }
     if (!panelRanking.hidden) { panelRanking.hidden = true; return true; }
-    nuevaPartida(nivelElegido);
+    if (nivelElegido === 0 && !historia.vista()) historia.mostrar(() => nuevaPartida(0));
+    else nuevaPartida(nivelElegido);
     return true;
   }
   if (estado === 'victoria' || estado === 'derrota') {

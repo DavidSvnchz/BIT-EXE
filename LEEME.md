@@ -76,7 +76,7 @@ Copia y pega esto en el chat nuevo después de subir el zip:
 ## Cómo está organizado el código
 
 Abre `index.html` con doble clic y funciona (no hace falta servidor). Ese archivo solo tiene el HTML
-(marcador, paneles, ajustes) y carga los estilos y 13 scripts **en este orden**: cada uno usa lo que
+(marcador, paneles, ajustes) y carga los estilos y 19 scripts **en este orden**: cada uno usa lo que
 cargan los anteriores. Cada archivo empieza con un comentario que explica qué contiene y de qué depende.
 
 ```
@@ -84,19 +84,26 @@ index.html              HTML: marcador, pantalla de inicio, paneles de fin, rank
 css/estilos.css         todos los estilos
 js/
   configuracion.js      ← EMPIEZA AQUÍ: todos los números del juego (física, armas, enemigos, puntos…)
+  analitica.js          medir('evento') → Vercel Analytics
   niveles.js            los mapas del mundo 1 (solo datos)
   graficos.js           lienzo, pixel art, skins de Bit, sprites de enemigos y fondos
   estado.js             variables que cambian al jugar (nivel, batería, Bit, enemigos, partida…)
   controles.js          acciones, teclas configurables, teclado y ratón
   musica.js             música en bucle
+  sonidos.js            efectos de 8 bits sintetizados + sacudida, parón y destello de los golpes
   interfaz.js           ajustes, marcador, avisos, selector de nivel, ranking
   fisica.js             casillas y colisiones
   enemigos.js           comportamiento, ataques y daño de los enemigos y del jefe
   bit.js                el personaje: movimiento, ataques, mejoras, daño
   partida.js            flujo: cargar nivel, puntos, monedas, victoria/derrota
+  historia.js           viñetas de la intro (antes del 1-1) y escena final del ascenso
   dibujo.js             pinta cada fotograma
   tactil.js             controles táctiles para móvil
+  mando.js              mando de consola en el PC (Xbox, PlayStation o genérico)
+  tutorial.js           carteles «!» del 1-1 con pistas, y pausa del móvil en vertical
   bucle.js              el bucle principal y el arranque
+api/
+  ranking.js            ranking mundial (función de Vercel + Upstash Redis)
 herramientas/
   generar_niveles.py    genera los niveles 2-20 dentro de js/niveles.js
 bit/ musica/ fondos/    recursos originales
@@ -129,8 +136,8 @@ en `js/niveles.js`, que acelera a sus enemigos.
 `7` torreta de ráfaga · `6` volador · `8` saltador · `H` cazador · `X` jefe · `B` batería extra ·
 `E` enchufe · `L` láser · `C` campo de fuerza · `S` espada frame. Todas las filas deben medir lo mismo.
 
-**Curva de dificultad** → los niveles 1-3 son de aprendizaje y el 20 es el del jefe. Del 4 al 9 hay de 10 a 15 enemigos;
-del 10 al 19, de 18 a 32, con más pinchos, una sola mejora por nivel y batería extra solo cada 3 niveles. Desde el 12
+**Curva de dificultad** → los niveles 1 y 2 son de aprendizaje y el 20 es el del jefe. El 3 tiene 9 enemigos; del 4 al 9
+hay de 13 a 21; del 10 al 19, de 22 a 37, con más pinchos, una sola mejora por nivel y batería extra solo cada 3 niveles. Desde el 12
 (dificultad mayor que 1) los enemigos aguantan un golpe más. Esto lo hace la pasada «REFUERZO» de
 `herramientas/generar_niveles.py`, que añade enemigos sin cambiar el recorrido.
 
@@ -162,16 +169,65 @@ se actualiza sola. Después léela en `pasoBit()` con `pulsadas.has('…')` o `p
 en `configuracion.js` para elegir entre mundos.
 
 ## Móvil
-El juego detecta solo si se abre en un dispositivo táctil (o en cuanto se toca la pantalla) y muestra, mientras se juega, una cruceta casi transparente a la izquierda (◀ ▶ moverse, ▲ saltar, ▼ coger, doble toque ◀ ▶ teletransporte) y los botones A (saltar) y B (atacar) a la derecha; ⇄ (cambiar arma) aparece solo con la espada. En PC no cambia nada. Código: `js/tactil.js`.
+Con el móvil en vertical el juego se pausa y pide girarlo (animación). El juego detecta solo si se abre en un dispositivo táctil (o en cuanto se toca la pantalla) y muestra, mientras se juega, una cruceta casi transparente a la izquierda (◀ ▶ moverse, ▲ saltar, ▼ coger, doble toque ◀ ▶ teletransporte) y los botones A (saltar) y B (atacar) a la derecha; ⇄ (cambiar arma) aparece solo con la espada. En PC no cambia nada. Código: `js/tactil.js`.
 
 ## Mundos
-- Mundo 1 · La Red: los 20 niveles actuales (1-1 a 1-20), con el Arcade Corrupto como jefe final.
+- Mundo 1 · La Red: los 20 niveles actuales (1-1 a 1-20), con el Malware Smith como jefe final.
 - Mundo 2: próximamente (en la pantalla de inicio aparece bloqueado). Al terminar el mundo 1, la historia lo anuncia.
 
 ## Historia
-Unos virus se han escapado por la Red. Bit sale de ella para eliminarlos nivel a nivel, a través de cinco zonas
-(La entrada, Ciudad Caché, Los archivos olvidados, Las profundidades y Hacia el núcleo), hasta derrotar al
-Arcade Corrupto en El Núcleo, consiguiendo la medalla de cada nivel.
+Bit es un antivirus: básicamente, un sheriff internáutico con un cañón láser. Trabaja de noche capturando
+virus sueltos, esperando la Medalla al Honor que nunca llega. Su objetivo es Malware Smith, el capo más
+buscado de la zona y prácticamente invencible. Con la ayuda del jugador, Bit cruza la Red nivel a nivel
+(La entrada, Ciudad Caché, Los archivos olvidados, Las profundidades y Hacia el núcleo) hasta derrotarlo
+en El Núcleo; entonces recibe por fin la Medalla al Honor y asciende a Sheriff Mayor de la Red.
+
+- La intro (4 viñetas) sale sola la primera vez que se juega el 1-1 y siempre desde el botón HISTORIA.
+  Textos en `VINETAS` (`js/historia.js`).
+- El final (panel «¡ASCENDIDO!» con la animación de la medalla) está en `terminar()` y `mostrarAscenso()`.
+
+## Tutorial del 1-1
+Carteles «!» clavados en el suelo del 1-1; al acercarte sale una pista arriba (moverse, saltar, pinchos,
+disparar, monedas, medalla). En PC usa tus teclas configuradas; en el móvil habla de la cruceta y de A/B.
+Para cambiarlas: `PISTAS_NIVEL1` en `js/tutorial.js` (`col` = columna del cartel; negativa = antes de la medalla).
+
+## Mando (PC)
+Conecta un mando y pulsa cualquier botón: el juego lo detecta y los textos pasan a hablar de botones.
+- Por defecto: stick izquierdo o cruceta para moverse, A/✕ saltar, X/□ atacar, Y/△ cambiar arma,
+  B/○ coger. La cruceta también salta (↑) y coge (↓). Start abre Ajustes.
+- En Ajustes › Controles hay una columna **Mando** para cambiarlos. Con el ratón: pulsa la casilla y luego el
+  botón del mando. Solo con el mando: Start → RB (pestaña Controles) → ↑ ↓ elige fila → A → pulsa el botón nuevo
+  (Start cancela) · X restablece · B cierra.
+- En el ranking: A guarda con el último nombre (o «BIT»), B no guarda. Vibra al recibir golpes si el mando lo permite.
+
+## Mejoras que sueltan los virus
+Al morir, cada virus (no el jefe) tiene un 8 % de soltar una mejora al azar distinta de la que llevas; cae al suelo
+que tenga debajo. Se cambia en `DROP.probabilidad` (`js/configuracion.js`).
+
+## Sonido y sensación de golpe
+- Efectos de 8 bits sintetizados en `js/sonidos.js` (no hay archivos): salto, disparos, láser, tajo, monedas,
+  golpes, mejoras, jefe, victoria… Se activan o silencian en Ajustes › Sonido › Efectos de sonido.
+  Para cambiar uno, edita su lista en `SONIDOS` (onda, frecuencia inicial y final, duración, volumen, retraso).
+- `sacudir(segundos, fuerza)`, `congelar(segundos)` (parón de un instante) y `destellar(segundos, color)`
+  dan peso a los golpes. Polvo al saltar/aterrizar y restos al eliminar virus: `polvo()` y `restos()` en `fisica.js`.
+
+## Ranking mundial (Vercel + Upstash, gratis)
+`api/ranking.js` guarda los 200 mejores en Upstash Redis y devuelve el top 10. Si no está configurado
+(o el juego se abre con doble clic), el juego usa el ranking de este navegador como antes.
+Para activarlo:
+1. Vercel → tu proyecto → **Storage** → **Create** → **Upstash for Redis** (plan gratuito) → conéctalo al proyecto.
+   Eso crea solo las variables `KV_REST_API_URL` y `KV_REST_API_TOKEN`.
+2. **Deployments** → **Redeploy** (las variables nuevas solo llegan en un despliegue nuevo).
+3. Comprueba que `https://bit-exe.vercel.app/api/ranking` responde `{"top":[]}`.
+Protecciones: nombres limpiados (10 caracteres), puntos entre 10 y 200.000 y múltiplos de 10, nivel 1-20,
+y una puntuación cada 20 s por IP. Si cambias los puntos en `configuracion.js`, revisa `MAX_PUNTOS`.
+
+## Compartir y analítica
+- Al acabar una partida, COMPARTIR abre el menú de compartir del móvil (o copia el enlace en el PC).
+- `index.html` carga Vercel Web Analytics. Actívalo en Vercel → tu proyecto → **Analytics** → **Enable**.
+  Verás visitas, países y de dónde llega la gente (TikTok incluido). Los eventos del juego
+  (`partida_empezada`, `nivel_superado`, `sin_bateria`, `juego_completado`, `compartir`, `historia_vista`…)
+  aparecen en la pestaña Events si tu plan de Vercel los incluye.
 
 ## Puntos, monedas y ranking (versión 4)
 - Las monedas se acumulan durante toda la partida: cada 50, +1 batería (o +500 puntos si ya tienes 5).
@@ -179,7 +235,7 @@ Arcade Corrupto en El Núcleo, consiguiendo la medalla de cada nivel.
 - Puntos: moneda 10 · patrullero y volador 100 · saltador y torreta 150 · blindado y cazador 200 ·
   torreta de ráfaga 250 · jefe 5000 · nivel superado 1000 + 250 por raya de batería que te quede.
 - La partida termina al quedarte sin batería o al ganar el último nivel; entonces puedes guardar tu nombre
-  en el ranking (top 10, guardado en el navegador). Botón RANKING en la pantalla de inicio.
+  en el ranking (top 10 mundial si está activado; si no, el del navegador). Botón RANKING en la pantalla de inicio.
 
 ## Estado del juego (versión 3)
 - 20 niveles con dificultad creciente, selector de nivel y progreso guardado en el navegador.
@@ -190,6 +246,6 @@ Arcade Corrupto en El Núcleo, consiguiendo la medalla de cada nivel.
   - Campo de fuerza (C): Bit acorazado; aguanta 4 golpes sin gastar batería y al cuarto se rompe.
   - Espada frame (S): Bit negro de ojos rojos, espada violeta, teletransporte con doble toque de dirección (0,85 s) y cambio de arma.
   - Enchufe, láser y espada se pierden con un golpe, pero ese golpe no gasta batería.
-- Enemigos: patrullero (4), blindado (K), torreta (5), torreta de ráfaga (7), volador (6), saltador (8), cazador (H) y el jefe Arcade Corrupto (X).
+- Enemigos: patrullero (4), blindado (K), torreta (5), torreta de ráfaga (7), volador (6), saltador (8), cazador (H) y el jefe Malware Smith (X).
 - Objetos en el mapa: B batería extra, E, L, C, S mejoras.
 - Los niveles 2-20 se generan con `herramientas/generar_niveles.py` y están escritos en `js/niveles.js` como cadenas: se pueden editar a mano.

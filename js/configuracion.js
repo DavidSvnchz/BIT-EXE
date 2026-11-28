@@ -47,6 +47,8 @@ const ARMAS = {
   laser:   { recarga: 0.55, dano: 2, alcance: 300 },                // rayo que atraviesa
   espada:  { recarga: 0.32, dano: 2, duracion: 0.24 },              // tajo violeta
 };
+// Al morir, cada virus (no el jefe) puede soltar una mejora al azar distinta de la que llevas
+const DROP = { probabilidad: 0.08 };
 const ESCUDO = { golpesMax: 4 };   // el campo de fuerza para 4 golpes sin gastar batería y luego se rompe
 const TELETRANSPORTE = { ventana: 0.85, distancia: 64, recarga: 0.35 };   // 64 px ≈ lo que alcanza un salto
 

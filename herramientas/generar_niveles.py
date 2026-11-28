@@ -169,17 +169,20 @@ def generar(n, semilla):
             m[f][c] = tipo
 
     # ------------------------------------------------------------------
-    # REFUERZO de dificultad (niveles 4 a 19). Usa otro generador aleatorio para
+    # REFUERZO de dificultad (niveles 3 a 19; el 1 y el 2 se quedan fáciles). Usa otro generador aleatorio para
     # no cambiar el recorrido (saltos, huecos) ya comprobado: solo añade enemigos
     # y pinchos y reduce las ayudas en los niveles altos.
     # ------------------------------------------------------------------
-    if 3 <= n <= 18:
+    if 2 <= n <= 18:
         r2 = random.Random(semilla * 7919 + 17)
-        if n <= 8:
-            objetivo = 7 + n                                   # niveles 4-9: 10 a 15 enemigos
+        if n == 2:
+            objetivo = 9                                       # nivel 3: 9 enemigos (antes 4)
+            d_final = round(d + 0.05, 2)
+        elif n <= 8:
+            objetivo = round(13 + (n - 3) * 1.6)               # niveles 4-9: 13 a 21 enemigos (antes 10 a 15)
             d_final = round(d + 0.1, 2)
         else:
-            objetivo = round(18 + (n - 9) * 1.55)              # niveles 10-19: 18 a 32 enemigos
+            objetivo = round(22 + (n - 9) * 1.65)              # niveles 10-19: 22 a 37 enemigos (antes 18 a 32)
             d_final = round(0.9 + (n - 9) * 0.07, 2)           # 0,90 a 1,53
         es_enemigo = lambda ch: ch in "45678KHX"
         actuales = [(f, c) for f in range(FILAS) for c in range(cols) if es_enemigo(m[f][c])]

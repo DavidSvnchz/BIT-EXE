@@ -30,17 +30,21 @@ function danarEnemigo(e, dano, velProyectil) {
   // El blindado para de frente los proyectiles (no el láser ni la espada)
   if (e.tipo === 'blindado' && velProyectil !== null && Math.sign(velProyectil) === -Math.sign(e.vx)) {
     estallido(e.vx > 0 ? e.x + e.w : e.x, e.y + 6, PAL.crema, 5, 50);
+    sonido('bloqueo');
     return false;
   }
   e.vida -= dano;
   e.golpe = 0.15;
   if (e.tipo === 'blindado') e.vx = Math.abs(e.vx) * Math.sign(bit.x - e.x || 1);   // se gira hacia Bit
-  if (e.tipo === 'jefe' && !e.fase2 && e.vida <= e.vidaMax / 2) { e.fase2 = true; mostrarAviso('¡FASE 2!', 1.4); temblor = 0.3; }
+  if (e.tipo === 'jefe' && !e.fase2 && e.vida <= e.vidaMax / 2) { e.fase2 = true; mostrarAviso('¡FASE 2!', 1.4); sacudir(0.4, 4); sonido('fase2'); destellar(0.15, PAL.rojoVivo); }
   if (e.tipo === 'jefe' && e.vida <= 0) {
     for (let k = 0; k < 4; k++) estallido(e.x + Math.random() * e.w, e.y + Math.random() * e.h, [PAL.fucsia, PAL.dorado, PAL.crema, PAL.cian][k], 20, 110);
-    temblor = 0.6; mostrarAviso('¡ARCADE CORRUPTO DERROTADO!', 2.2);
+    sacudir(0.9, 6); congelar(0.3); destellar(0.3); sonido('explosion'); vibrar(700, 1); mostrarAviso('¡MALWARE SMITH DERROTADO!', 2.2);
   }
+  if (e.vida > 0) sonido('impacto');
   if (e.vida <= 0) {
+    if (e.tipo !== 'jefe') { sonido('muere'); congelar(0.045); sacudir(0.1, 2); vibrar(50, 0.3); soltarMejora(e); }
+    restos(e.x + e.w / 2, e.y + e.h / 2);
     sumarPuntos(PUNTOS[e.tipo] || 100, e.x + e.w / 2 - 6, e.y - 4);
     estallido(e.x + e.w / 2, e.y + e.h / 2, PAL.fucsia, 12, 70);
     estallido(e.x + e.w / 2, e.y + e.h / 2, PAL.crema, 6, 40);
@@ -52,14 +56,31 @@ function dispararEnemigo(e, vel) {
   proyectiles.push({ deBit: false, x: e.mira < 0 ? e.x - 4 : e.x + e.w, y: e.y + 4, w: 4, h: 4, vx: e.mira * vel });
 }
 
+// Mejora que suelta un virus al morir: cae hasta el suelo que tenga debajo (si hay hueco, se queda en el aire)
+function soltarMejora(e) {
+  if (Math.random() >= DROP.probabilidad) return;
+  const tipos = Object.keys(LETRA_MEJORA).filter(t => t !== mejora);
+  const tipo = tipos[Math.floor(Math.random() * tipos.length)];
+  const c = Math.floor((e.x + e.w / 2) / T);
+  let f = Math.floor((e.y + e.h / 2) / T);
+  if (c < 0 || c >= cols || f < 0 || f >= filas || casilla(c, f) !== AIRE) return;
+  let g = f;
+  while (g + 1 < filas && casilla(c, g + 1) === AIRE) g++;
+  if (g + 1 < filas && esSolida(c, g + 1)) f = g;   // apoyada en el suelo
+  mapa[f][c] = LETRA_MEJORA[tipo];
+  estallido(c * T + 8, f * T + 8, COLOR_OBJETO[LETRA_MEJORA[tipo]], 14, 60);
+  textos.push({ txt: '+', x: c * T + 6, y: f * T - 4, t: 0 });
+  sonido('soltar');
+}
+
 const hayJefe = () => enemigos.some(e => e.tipo === 'jefe');
 
-// Arcade Corrupto: flota de lado a lado y alterna tres ataques; en la fase 2 va más rápido
+// Malware Smith: flota de lado a lado y alterna tres ataques; en la fase 2 va más rápido
 function pasoJefe(e, dt, dx, dy) {
   const J = ENEMIGOS.jefe, rapidez = e.fase2 ? 1.6 : 1;
   e.x = e.x0 + Math.sin(tiempo * 0.8 * rapidez) * J.recorrido;
   e.y = e.y0 + Math.sin(tiempo * 2) * 4;
-  if (!e.activo && Math.abs(dx) < J.alcance) { e.activo = true; mostrarAviso('¡ARCADE CORRUPTO!', 1.6); }
+  if (!e.activo && Math.abs(dx) < J.alcance) { e.activo = true; mostrarAviso('¡MALWARE SMITH!', 1.6); sonido('jefe'); sacudir(0.3, 3); }
   if (!e.activo) return;
   e.recarga -= dt * rapidez;
   if (e.recarga > 0) return;

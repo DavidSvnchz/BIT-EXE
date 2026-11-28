@@ -49,3 +49,20 @@ function estallido(x, y, color, n = 10, vel = 60) {
     particulas.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, vida: 0.3 + Math.random() * 0.3, color });
   }
 }
+
+// Polvo al saltar y al aterrizar: nubecillas que salen a los lados y apenas caen
+function polvo(x, y, n = 5) {
+  for (let i = 0; i < n; i++) {
+    const lado = i % 2 ? 1 : -1;
+    particulas.push({ x: x + lado * 2, y: y - 1, vx: lado * (15 + Math.random() * 30), vy: -8 - Math.random() * 12,
+      t: 0, vida: 0.25 + Math.random() * 0.15, color: i % 3 ? PAL.gris : PAL.crema, peso: 20 });
+  }
+}
+// Restos de un virus eliminado: trozos de 3 píxeles que saltan y caen
+function restos(x, y) {
+  for (let i = 0; i < 6; i++) {
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * 2.2, v = 70 + Math.random() * 60;
+    particulas.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, vida: 0.6 + Math.random() * 0.3,
+      color: [PAL.fucsia, PAL.tinta2, PAL.crema][i % 3], tam: 3, peso: 420 });
+  }
+}

@@ -4,7 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Bit.exe</title>
-<meta name="description" content="Bit.exe: un juego de plataformas en pixel art. Bit sale de la Red para eliminar a los virus que se han escapado.">
+<meta name="description" content="Bit.exe: un juego de plataformas en pixel art. Bit, el sheriff internáutico, persigue a Malware Smith por la Red. Gratis en el navegador.">
+<meta property="og:title" content="Bit.exe · ¿Llegas al nivel 20?">
+<meta property="og:description" content="Ayuda a Bit a atrapar a Malware Smith y conseguir su ansiado ascenso. Juego de plataformas gratis en el navegador.">
+<meta property="og:image" content="https://bit-exe.vercel.app/fondos/hero-fondo.png">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#120F1F">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
@@ -28,11 +33,12 @@
 
   <div class="aviso oculto" id="aviso" aria-live="polite"></div>
   <div class="aviso-coger" id="avisoCoger" hidden></div>
-  <div class="barra-jefe" id="barraJefe" hidden><span>ARCADE CORRUPTO</span><div class="vida"><i id="vidaJefe"></i></div></div>
+  <div class="pista" id="pista" hidden></div>
+  <div class="barra-jefe" id="barraJefe" hidden><span>MALWARE SMITH</span><div class="vida"><i id="vidaJefe"></i></div></div>
 
   <div class="panel" id="panelInicio">
     <h1 class="titulo">BIT<span>.EXE</span></h1>
-    <p>Unos virus se han escapado por la Red. Bit ha salido de ella para eliminarlos, mundo a mundo.</p>
+    <p>Bit, el sheriff internáutico, persigue a <b class="malo">Malware Smith</b> por la Red. Ayúdale a conseguir su ansiado ascenso.</p>
     <div class="mundos" role="group" aria-label="Mundos">
       <div class="mundo activo"><b>MUNDO 1</b><span>La Red · 20 niveles</span></div>
       <div class="mundo bloqueado" aria-label="Mundo 2: próximamente"><b>MUNDO 2</b><span class="pronto">PRÓXIMAMENTE</span></div>
@@ -44,17 +50,28 @@
     </div>
     <p class="tenue" id="ayudaControles"></p>
     <p class="llamada" id="llamadaInicio">PULSA UNA TECLA PARA EMPEZAR</p>
-    <p><button class="boton secundario" id="verRanking" type="button">RANKING</button></p>
+    <p class="botones-inicio"><button class="boton secundario" id="verHistoria" type="button">HISTORIA</button> <button class="boton secundario" id="verRanking" type="button">RANKING</button></p>
     <p class="aviso-tactil">Cruceta: moverse · ▲ saltar · ▼ coger · doble toque ◀ ▶ teletransporte (espada). A salta, B ataca.</p>
     <p class="aviso-girar">Gira el móvil para jugar en horizontal.</p>
   </div>
 
+  <!-- Historia: viñetas antes del nivel 1-1 -->
+  <div class="panel historia" id="panelHistoria" role="dialog" aria-modal="true" aria-label="Historia" hidden>
+    <canvas id="lienzoHistoria" width="128" height="72" aria-hidden="true"></canvas>
+    <p id="textoHistoria"></p>
+    <p class="llamada" id="llamadaHistoria"></p>
+    <div class="pie-historia"><span class="tenue" id="pasoHistoria"></span><button class="boton secundario" id="saltarHistoria" type="button">SALTAR</button></div>
+  </div>
+
   <!-- Panel de fin: sirve para la victoria y para la derrota -->
   <div class="panel" id="panelFin" hidden>
+    <canvas class="arte-fin" id="arteFin" width="96" height="56" hidden aria-hidden="true"></canvas>
     <h1 class="oro" id="finTitulo">¡MEDALLA!</h1>
     <p id="finTexto"></p>
     <p id="finMonedas" class="tenue"></p>
     <p id="finPuntos" class="resumen"></p>
+    <p id="finPuesto" class="resumen puesto"></p>
+    <p id="finBotones" hidden><button class="boton" id="compartir" type="button">COMPARTIR</button> <button class="boton secundario" id="irMenu" type="button">MENÚ</button></p>
     <form class="form-ranking" id="formRanking" hidden>
       <label for="nombreRanking">¡Entras en el ranking! Tu nombre:</label>
       <div class="fila-form">
@@ -63,16 +80,16 @@
         <button class="boton secundario" type="button" id="noGuardar">NO GUARDAR</button>
       </div>
     </form>
+    <p class="tipo-ranking" id="tipoRankingFin" hidden></p>
     <table class="ranking" id="rankingFin" hidden><thead><tr><th>#</th><th>Nombre</th><th>Puntos</th><th>Nivel</th></tr></thead><tbody></tbody></table>
     <p class="llamada" id="finLlamada"></p>
-    <p id="finBotones" hidden><button class="boton secundario" id="irMenu" type="button">MENÚ</button></p>
   </div>
 
   <!-- Ranking (desde el inicio) -->
   <div class="panel" id="panelRanking" role="dialog" aria-modal="true" aria-labelledby="tituloRanking" hidden>
     <h1 id="tituloRanking">RANKING</h1>
     <table class="ranking"><thead><tr><th>#</th><th>Nombre</th><th>Puntos</th><th>Nivel</th></tr></thead><tbody id="rankingInicio"></tbody></table>
-    <p class="tenue">Puntuaciones guardadas en este navegador.</p>
+    <p class="tenue" id="notaRanking">Puntuaciones guardadas en este navegador.</p>
     <p><button class="boton" id="cerrarRanking" type="button">CERRAR</button></p>
   </div>
 
@@ -93,6 +110,10 @@
         <button class="boton interruptor" id="botonMusica" type="button" aria-pressed="true">SÍ</button>
       </div>
       <div class="fila">
+        <span>Efectos de sonido</span>
+        <button class="boton interruptor" id="botonEfectos" type="button" aria-pressed="true">SÍ</button>
+      </div>
+      <div class="fila">
         <label for="volumen">Volumen</label>
         <input type="range" id="volumen" min="0" max="100" step="5" value="50">
       </div>
@@ -101,10 +122,10 @@
 
     <section class="apartado" id="apControles" role="tabpanel" aria-labelledby="tabControles" hidden>
       <table>
-        <thead><tr><th>Acción</th><th>Tecla 1</th><th>Tecla 2</th><th>Tecla 3</th></tr></thead>
+        <thead><tr><th>Acción</th><th>Tecla 1</th><th>Tecla 2</th><th>Tecla 3</th><th class="col-mando">Mando</th></tr></thead>
         <tbody id="tablaControles"></tbody>
       </table>
-      <p class="nota">Pulsa una casilla y luego la tecla o el botón del ratón. Esc cancela · Retroceso la vacía.</p>
+      <p class="nota">Pulsa una casilla y luego la tecla, el botón del ratón o el del mando. Esc cancela · Retroceso la vacía. Con mando: la cruceta también mueve, salta (↑) y coge (↓); Start abre Ajustes.</p>
       <div class="acciones">
         <p class="nota aviso-tecla" id="avisoTecla" aria-live="polite"></p>
         <button class="boton secundario" id="restablecer" type="button">RESTABLECER</button>
@@ -117,6 +138,13 @@
   <source src="musica/musica-bucle.ogg" type="audio/ogg">
   <source src="musica/musica-bucle.mp3" type="audio/mpeg">
 </audio>
+
+<!-- Móvil en vertical: el juego se pausa hasta girarlo -->
+<div class="girar" id="girar" aria-live="polite">
+  <div class="icono-movil" aria-hidden="true"><i></i></div>
+  <p>GIRA EL MÓVIL</p>
+  <small>Bit.exe se juega en horizontal</small>
+</div>
 
 <!-- Controles táctiles (solo aparecen en móvil) -->
 <div class="tactil oculto" id="tactil" hidden>
@@ -132,18 +160,25 @@
 
 <!-- El orden importa: cada archivo usa lo que cargan los anteriores (ver LEEME.md) -->
 <script src="js/configuracion.js"></script>
+<script src="js/analitica.js"></script>
 <script src="js/niveles.js"></script>
 <script src="js/graficos.js"></script>
 <script src="js/estado.js"></script>
 <script src="js/controles.js"></script>
 <script src="js/musica.js"></script>
+<script src="js/sonidos.js"></script>
 <script src="js/interfaz.js"></script>
 <script src="js/fisica.js"></script>
 <script src="js/enemigos.js"></script>
 <script src="js/bit.js"></script>
 <script src="js/partida.js"></script>
+<script src="js/historia.js"></script>
 <script src="js/tactil.js"></script>
+<script src="js/mando.js"></script>
+<script src="js/tutorial.js"></script>
 <script src="js/dibujo.js"></script>
 <script src="js/bucle.js"></script>
+<!-- Vercel Web Analytics (se activa en el panel de Vercel; con doble clic no hace nada) -->
+<script defer src="/_vercel/insights/script.js"></script>
 </body>
 </html>
