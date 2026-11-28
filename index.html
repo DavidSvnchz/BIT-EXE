@@ -10,6 +10,13 @@
 <meta property="og:image" content="https://bit-exe.vercel.app/fondos/hero-fondo.png">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#120F1F">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="iconos/icono-192.png">
+<link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bit.exe">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
@@ -26,7 +33,9 @@
       <div class="mejora" id="mejora" hidden><span id="mejoraNombre"></span><span class="extra" id="mejoraExtra"></span></div>
     </div>
     <div class="derecha">
+      <div class="crono" id="crono" aria-label="Tiempo del nivel">0:00.0</div>
       <div class="puntos" id="puntos" aria-label="Puntos">000000</div>
+      <button id="botonPausa" class="boton secundario pausa" type="button" title="Pausa (P)" aria-label="Pausa">❚❚</button>
       <button id="abrirAjustes" class="boton" type="button" title="Ajustes (Esc)">AJUSTES</button>
     </div>
   </div>
@@ -48,11 +57,14 @@
       <div class="nivel" id="nivelSel" aria-live="polite"></div>
       <button class="boton secundario" id="nivelMas" type="button" aria-label="Nivel siguiente">▶</button>
     </div>
+    <p class="total-estrellas" id="totalEstrellas"></p>
     <p class="tenue" id="ayudaControles"></p>
     <p class="llamada" id="llamadaInicio">PULSA UNA TECLA PARA EMPEZAR</p>
     <p class="botones-inicio"><button class="boton secundario" id="verHistoria" type="button">HISTORIA</button> <button class="boton secundario" id="verRanking" type="button">RANKING</button></p>
     <p class="aviso-tactil">Cruceta: moverse · ▲ saltar · ▼ coger · doble toque ◀ ▶ teletransporte (espada). A salta, B ataca.</p>
     <p class="aviso-girar">Gira el móvil para jugar en horizontal.</p>
+    <p class="instalar" id="cajaInstalar" hidden><button class="boton" id="instalar" type="button">INSTALAR LA APP</button></p>
+    <p class="aviso-ios" id="avisoIOS" hidden>Para jugar a pantalla completa: <b>Compartir ⬆︎ ▸ Añadir a pantalla de inicio</b>.</p>
   </div>
 
   <!-- Historia: viñetas antes del nivel 1-1 -->
@@ -67,6 +79,7 @@
   <div class="panel" id="panelFin" hidden>
     <canvas class="arte-fin" id="arteFin" width="96" height="56" hidden aria-hidden="true"></canvas>
     <h1 class="oro" id="finTitulo">¡MEDALLA!</h1>
+    <div class="estrellas-fin" id="finEstrellas" hidden></div>
     <p id="finTexto"></p>
     <p id="finMonedas" class="tenue"></p>
     <p id="finPuntos" class="resumen"></p>
@@ -83,6 +96,17 @@
     <p class="tipo-ranking" id="tipoRankingFin" hidden></p>
     <table class="ranking" id="rankingFin" hidden><thead><tr><th>#</th><th>Nombre</th><th>Puntos</th><th>Nivel</th></tr></thead><tbody></tbody></table>
     <p class="llamada" id="finLlamada"></p>
+  </div>
+
+  <!-- Pausa -->
+  <div class="panel pausa-panel" id="panelPausa" role="dialog" aria-modal="true" aria-labelledby="tituloPausa" hidden>
+    <h1 id="tituloPausa">PAUSA</h1>
+    <p id="pausaNivel" class="resumen"></p>
+    <p id="pausaDatos" class="tenue"></p>
+    <p class="botones-pausa"><button class="boton" id="continuar" type="button">CONTINUAR</button>
+      <button class="boton secundario" id="pausaAjustes" type="button">AJUSTES</button>
+      <button class="boton secundario" id="pausaMenu" type="button">SALIR AL MENÚ</button></p>
+    <p class="tenue nota-pausa">P, Esc o Start para continuar</p>
   </div>
 
   <!-- Ranking (desde el inicio) -->
@@ -125,7 +149,7 @@
         <thead><tr><th>Acción</th><th>Tecla 1</th><th>Tecla 2</th><th>Tecla 3</th><th class="col-mando">Mando</th></tr></thead>
         <tbody id="tablaControles"></tbody>
       </table>
-      <p class="nota">Pulsa una casilla y luego la tecla, el botón del ratón o el del mando. Esc cancela · Retroceso la vacía. Con mando: la cruceta también mueve, salta (↑) y coge (↓); Start abre Ajustes.</p>
+      <p class="nota">Pulsa una casilla y luego la tecla, el botón del ratón o el del mando. Esc cancela · Retroceso la vacía. Con mando: la cruceta también mueve, salta (↑) y coge (↓); Start pausa. P pausa con el teclado.</p>
       <div class="acciones">
         <p class="nota aviso-tecla" id="avisoTecla" aria-live="polite"></p>
         <button class="boton secundario" id="restablecer" type="button">RESTABLECER</button>
@@ -163,6 +187,7 @@
 <script src="js/analitica.js"></script>
 <script src="js/niveles.js"></script>
 <script src="js/graficos.js"></script>
+<script src="js/zonas.js"></script>
 <script src="js/estado.js"></script>
 <script src="js/controles.js"></script>
 <script src="js/musica.js"></script>
@@ -170,12 +195,15 @@
 <script src="js/interfaz.js"></script>
 <script src="js/fisica.js"></script>
 <script src="js/enemigos.js"></script>
+<script src="js/tenientes.js"></script>
 <script src="js/bit.js"></script>
 <script src="js/partida.js"></script>
 <script src="js/historia.js"></script>
+<script src="js/progreso.js"></script>
 <script src="js/tactil.js"></script>
 <script src="js/mando.js"></script>
 <script src="js/tutorial.js"></script>
+<script src="js/app.js"></script>
 <script src="js/dibujo.js"></script>
 <script src="js/bucle.js"></script>
 <!-- Vercel Web Analytics (se activa en el panel de Vercel; con doble clic no hace nada) -->

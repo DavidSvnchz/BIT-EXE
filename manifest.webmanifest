@@ -1,0 +1,19 @@
+{
+  "name": "Bit.exe",
+  "short_name": "Bit.exe",
+  "description": "Ayuda a Bit, el sheriff internáutico, a atrapar a Malware Smith y conseguir su ascenso.",
+  "lang": "es",
+  "start_url": "./?app=1",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#120F1F",
+  "theme_color": "#120F1F",
+  "categories": ["games"],
+  "icons": [
+    { "src": "iconos/icono-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "iconos/icono-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "iconos/icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

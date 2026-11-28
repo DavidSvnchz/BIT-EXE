@@ -224,3 +224,35 @@ td:first-child{color:var(--crema);white-space:nowrap;padding-right:calc(var(--s)
 .panel b.malo{color:var(--fucsia);font-weight:600}
 .panel #finPuntos,.panel #finPuesto{display:inline-block;margin-left:calc(var(--s)*4px);margin-right:calc(var(--s)*4px)}
 .panel #finMonedas[hidden]{display:none}
+
+/* ---------- Cronómetro y pausa (marcador) ---------- */
+.crono{font-family:Anton,Impact,sans-serif;color:var(--crema);letter-spacing:.06em;font-variant-numeric:tabular-nums;
+  text-shadow:calc(var(--s)*1px) calc(var(--s)*1px) 0 var(--noche);min-width:3.6em;text-align:right}
+.boton.pausa{min-width:34px;letter-spacing:-.1em;padding-left:calc(var(--s)*4px);padding-right:calc(var(--s)*5px)}
+.pausa-panel{z-index:4}
+.pausa-panel .botones-pausa{display:flex;flex-wrap:wrap;justify-content:center;gap:calc(var(--s)*4px);margin-top:calc(var(--s)*6px)}
+.pausa-panel .nota-pausa{font-size:max(12px,calc(var(--s)*5px))}
+.movil .nota-pausa{display:none}
+
+/* ---------- Estrellas ---------- */
+.estrellas-fin{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;gap:calc(var(--s)*2px) calc(var(--s)*8px);margin-top:calc(var(--s)*3px)}
+.estrellas-fin[hidden]{display:none}
+.estrella{display:flex;flex-direction:column;align-items:center;opacity:0;animation:estrellaEntra .35s ease-out forwards}
+.estrella b{font-size:max(22px,calc(var(--s)*14px));line-height:1;color:var(--tinta2);font-weight:400}
+.estrella.si b{color:var(--dorado);text-shadow:0 0 calc(var(--s)*4px) rgba(255,196,61,.6)}
+.estrella.nueva b{animation:estrellaBrilla 1s steps(2,end) .6s 3}
+.estrella small{font-family:Anton,Impact,sans-serif;font-size:max(10px,calc(var(--s)*4px));letter-spacing:.06em;color:var(--gris)}
+.tiempo-fin{flex-basis:100%;font-family:Anton,Impact,sans-serif;font-size:max(12px,calc(var(--s)*5.5px));letter-spacing:.05em;color:var(--gris);text-align:center}
+.tiempo-fin em{font-style:normal;color:var(--lima)}
+@keyframes estrellaEntra{from{opacity:0;transform:scale(2.2)}to{opacity:1;transform:scale(1)}}
+@keyframes estrellaBrilla{50%{color:var(--crema)}}
+.total-estrellas{font-family:Anton,Impact,sans-serif;color:var(--dorado)!important;letter-spacing:.06em;font-size:max(13px,calc(var(--s)*6.5px))!important}
+.selector .nivel .estrellas-sel{display:block;color:var(--dorado);font-size:max(13px,calc(var(--s)*6px));letter-spacing:.12em;line-height:1.2}
+.selector .nivel .estrellas-sel i{font-style:normal;font-family:system-ui,sans-serif;letter-spacing:0;color:var(--gris);font-size:.8em}
+
+/* ---------- Instalar la app ---------- */
+.panel .instalar[hidden],.panel .aviso-ios[hidden]{display:none}
+.panel .aviso-ios{color:var(--gris);font-size:max(12px,calc(var(--s)*5px))}
+.panel .aviso-ios b{color:var(--crema);font-weight:600}
+html.app .aviso-girar{display:none!important}
+@media (prefers-reduced-motion:reduce){.estrella,.estrella.nueva b{animation:none;opacity:1}}

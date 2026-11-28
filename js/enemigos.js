@@ -33,6 +33,11 @@ function danarEnemigo(e, dano, velProyectil) {
     sonido('bloqueo');
     return false;
   }
+  if (e.tipo === 'teniente' && tenienteBloquea(e, velProyectil)) {
+    estallido(e.mira > 0 ? e.x + e.w : e.x, e.y + 10, PAL.dorado, 5, 50);
+    sonido('bloqueo');
+    return false;
+  }
   e.vida -= dano;
   e.golpe = 0.15;
   if (e.tipo === 'blindado') e.vx = Math.abs(e.vx) * Math.sign(bit.x - e.x || 1);   // se gira hacia Bit
@@ -43,7 +48,11 @@ function danarEnemigo(e, dano, velProyectil) {
   }
   if (e.vida > 0) sonido('impacto');
   if (e.vida <= 0) {
-    if (e.tipo !== 'jefe') { sonido('muere'); congelar(0.045); sacudir(0.1, 2); vibrar(50, 0.3); soltarMejora(e); }
+    if (e.tipo === 'teniente') {
+      for (let k = 0; k < 3; k++) estallido(e.x + Math.random() * e.w, e.y + Math.random() * e.h, [PAL.dorado, PAL.fucsia, PAL.crema][k], 18, 100);
+      sonido('explosion'); congelar(0.25); sacudir(0.6, 5); destellar(0.2); vibrar(400, 0.9);
+      mostrarAviso('¡' + e.nombre + ' DETENIDO!', 2.2);
+    } else if (e.tipo !== 'jefe') { sonido('muere'); congelar(0.045); sacudir(0.1, 2); vibrar(50, 0.3); soltarMejora(e); }
     restos(e.x + e.w / 2, e.y + e.h / 2);
     sumarPuntos(PUNTOS[e.tipo] || 100, e.x + e.w / 2 - 6, e.y - 4);
     estallido(e.x + e.w / 2, e.y + e.h / 2, PAL.fucsia, 12, 70);
@@ -73,7 +82,7 @@ function soltarMejora(e) {
   sonido('soltar');
 }
 
-const hayJefe = () => enemigos.some(e => e.tipo === 'jefe');
+const hayJefe = () => enemigos.some(e => e.tipo === 'jefe' || e.tipo === 'teniente');   // la medalla queda enjaulada
 
 // Malware Smith: flota de lado a lado y alterna tres ataques; en la fase 2 va más rápido
 function pasoJefe(e, dt, dx, dy) {
@@ -163,6 +172,8 @@ function pasoEnemigos(dt) {
     } else if (e.tipo === 'jefe') {
       pasoJefe(e, dt, dx, dy);
       colaJefe(e, dt);
+    } else if (e.tipo === 'teniente') {
+      pasoTeniente(e, dt, dx, dy);
     }
 
     if (e.vida > 0 && solapan(bit, e.x + 1, e.y + 2, e.w - 2, e.h - 2)) herir(e.x + e.w / 2);
@@ -175,6 +186,7 @@ function pasoProyectiles(dt) {
     if (p.fuera) continue;
     p.x += p.vx * dt;
     if (p.vy) p.y += p.vy * dt;
+    if (p.g) p.vy += p.g * dt;   // correos basura del Spambot: caen
     const cx = p.x + p.w / 2, cy = p.y + p.h / 2;
     if (esSolida(Math.floor(cx / T), Math.floor(cy / T)) || cx < camX - 40 || cx > camX + ANCHO + 40 || cy > filas * T + 20 || cy < -60) {
       p.fuera = true;

@@ -76,7 +76,7 @@ Copia y pega esto en el chat nuevo después de subir el zip:
 ## Cómo está organizado el código
 
 Abre `index.html` con doble clic y funciona (no hace falta servidor). Ese archivo solo tiene el HTML
-(marcador, paneles, ajustes) y carga los estilos y 19 scripts **en este orden**: cada uno usa lo que
+(marcador, paneles, ajustes) y carga los estilos y 23 scripts **en este orden**: cada uno usa lo que
 cargan los anteriores. Cada archivo empieza con un comentario que explica qué contiene y de qué depende.
 
 ```
@@ -87,6 +87,7 @@ js/
   analitica.js          medir('evento') → Vercel Analytics
   niveles.js            los mapas del mundo 1 (solo datos)
   graficos.js           lienzo, pixel art, skins de Bit, sprites de enemigos y fondos
+  zonas.js              ambiente de cada zona: cielo, edificios, suelo y partículas
   estado.js             variables que cambian al jugar (nivel, batería, Bit, enemigos, partida…)
   controles.js          acciones, teclas configurables, teclado y ratón
   musica.js             música en bucle
@@ -94,14 +95,21 @@ js/
   interfaz.js           ajustes, marcador, avisos, selector de nivel, ranking
   fisica.js             casillas y colisiones
   enemigos.js           comportamiento, ataques y daño de los enemigos y del jefe
+  tenientes.js          los 4 lugartenientes de Malware Smith (niveles 4, 8, 12 y 16)
   bit.js                el personaje: movimiento, ataques, mejoras, daño
   partida.js            flujo: cargar nivel, puntos, monedas, victoria/derrota
   historia.js           viñetas de la intro (antes del 1-1) y escena final del ascenso
+  progreso.js           estrellas, cronómetro y récords, puntos de control y pausa
   dibujo.js             pinta cada fotograma
   tactil.js             controles táctiles para móvil
   mando.js              mando de consola en el PC (Xbox, PlayStation o genérico)
   tutorial.js           carteles «!» del 1-1 con pistas, y pausa del móvil en vertical
+  app.js                instalar como app (PWA): botón INSTALAR y nota para iPhone
   bucle.js              el bucle principal y el arranque
+sw.js                   service worker: el juego funciona sin conexión una vez abierto
+manifest.webmanifest    datos de la app instalable (nombre, iconos, horizontal, pantalla completa)
+vercel.json             cabeceras para sw.js y el manifest
+iconos/                 iconos de la app
 api/
   ranking.js            ranking mundial (función de Vercel + Upstash Redis)
 herramientas/
@@ -191,12 +199,36 @@ Carteles «!» clavados en el suelo del 1-1; al acercarte sale una pista arriba 
 disparar, monedas, medalla). En PC usa tus teclas configuradas; en el móvil habla de la cruceta y de A/B.
 Para cambiarlas: `PISTAS_NIVEL1` en `js/tutorial.js` (`col` = columna del cartel; negativa = antes de la medalla).
 
+## Zonas y lugartenientes
+Cada zona tiene su ambiente (`ZONAS` en `js/zonas.js`): 1-4 La entrada (la noche de siempre), 5-8 Ciudad Caché
+(azul, lluvia), 9-12 Los archivos olvidados (sepia, polvo), 13-16 Las profundidades (verde azulado, burbujas) y
+17-20 Hacia el núcleo (rojo, brasas). Cada zona termina con un lugarteniente de Malware Smith que enjaula la medalla:
+**Troyano** (1-4, salta y dispara a ras de suelo), **Spambot** (1-8, bombardea con correo basura y baja en picado),
+**Gusano** (1-12, embiste) y **Ransomware** (1-16, blindado de frente: solo es vulnerable cuando se abre para disparar,
+o con láser y espada). Vida y tamaños en `TENIENTES` (`js/tenientes.js`); 1500 puntos cada uno.
+
+## Estrellas, récords, puntos de control y pausa
+- **3 estrellas por nivel**: superarlo · todas las monedas · sin recibir ningún golpe. Se ven en el selector de nivel
+  (con tu récord de tiempo), el total en el menú (★ x / 60) y se celebran al superar el nivel.
+- **Cronómetro** en el marcador; el mejor tiempo de cada nivel se guarda.
+- **Puntos de control**: banderas en los niveles de 140 casillas o más (dos desde 200). Si te quedas sin batería
+  después de pasar una, vuelves a ella con 1 raya, sin mejora y −500 puntos. Cada bandera sirve una vez.
+  Ajustes en `CONTROL` (`js/progreso.js`).
+- **Pausa**: botón ❚❚ del marcador, tecla P o Start del mando. También se pausa sola al cambiar de pestaña o de app.
+
+## App instalable (PWA)
+Al abrirlo en el móvil (Chrome/Android) sale **INSTALAR LA APP** en el menú; en iPhone, una nota explica
+«Compartir ▸ Añadir a pantalla de inicio». Instalado se abre a pantalla completa, en horizontal y funciona sin
+conexión. Importante al publicar cambios: el móvil enseña primero la versión guardada y descarga la nueva en
+segundo plano (se ve la siguiente vez). Si cambias muchas cosas, sube `VERSION` en `sw.js` (`bitexe-v16` → `v17`)
+y, si añades archivos, añádelos a `ARCHIVOS`.
+
 ## Mando (PC)
 Conecta un mando y pulsa cualquier botón: el juego lo detecta y los textos pasan a hablar de botones.
 - Por defecto: stick izquierdo o cruceta para moverse, A/✕ saltar, X/□ atacar, Y/△ cambiar arma,
-  B/○ coger. La cruceta también salta (↑) y coge (↓). Start abre Ajustes.
+  B/○ coger. La cruceta también salta (↑) y coge (↓). Start pausa (en la pausa: A/B continúan, Y abre Ajustes).
 - En Ajustes › Controles hay una columna **Mando** para cambiarlos. Con el ratón: pulsa la casilla y luego el
-  botón del mando. Solo con el mando: Start → RB (pestaña Controles) → ↑ ↓ elige fila → A → pulsa el botón nuevo
+  botón del mando. Solo con el mando: Start → Y (Ajustes) → RB (pestaña Controles) → ↑ ↓ elige fila → A → pulsa el botón nuevo
   (Start cancela) · X restablece · B cierra.
 - En el ranking: A guarda con el último nombre (o «BIT»), B no guarda. Vibra al recibir golpes si el mando lo permite.
 

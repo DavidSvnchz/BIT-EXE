@@ -29,6 +29,7 @@ function perderMejora() {
 function herir(desdeX, forzado) {
   const j = bit;
   if (estado !== 'jugando' || (j.parpadeo > 0 && !forzado)) return;
+  golpesNivel++;   // para la estrella «sin golpes» (progreso.js)
   let gastar = true;
   if (mejora === 'escudo') {
     golpesEscudo++;
@@ -55,7 +56,7 @@ function herir(desdeX, forzado) {
       textos.push({ txt: '-' + perdidas, x: j.x, y: j.y - 6, t: 0, malo: true });
       actualizarContador();
     }
-    if (bateria <= 0) { terminar(false); return; }
+    if (bateria <= 0) { if (salvarEnControl()) return; terminar(false); return; }   // ¿bandera de control?
   }
   sacudir(gastar ? 0.25 : 0.15, gastar ? 4 : 2);
   j.parpadeo = INVENCIBLE;
@@ -228,7 +229,10 @@ function pasoBit(dt) {
         objetoCerca = { c, f, tipo };
       }
     } else if (v === MEDALLA && solapan(j, x + 3, y + 2, 10, 14)) {
-      if (hayJefe()) { if (tiempo - avisoJaula > 2) { mostrarAviso('¡DERROTA AL MALWARE SMITH!'); avisoJaula = tiempo; } }
+      if (hayJefe()) {
+        const guardian = enemigos.find(e => e.tipo === 'jefe' || e.tipo === 'teniente');
+        if (tiempo - avisoJaula > 2) { mostrarAviso('¡DERROTA A ' + (guardian.nombre || 'MALWARE SMITH') + '!'); avisoJaula = tiempo; }
+      }
       else { terminar(true); return; }
     }
     if (estado !== 'jugando') return;

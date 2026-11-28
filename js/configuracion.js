@@ -34,7 +34,7 @@ const BATERIA = { inicial: 3, maxima: 5 };   // rayas de batería
 const MONEDAS = { porVida: 50, perdidaPorBateria: 10 };   // cada 50: +1 batería; cada batería perdida: −10
 const PUNTOS = {
   moneda: 10, nivel: 1000, porRaya: 250, vidaConBateriaLlena: 500,
-  patrullero: 100, volador: 100, saltador: 150, torreta: 150, blindado: 200, rafaga: 250, cazador: 200, jefe: 5000
+  patrullero: 100, volador: 100, saltador: 150, torreta: 150, blindado: 200, rafaga: 250, cazador: 200, teniente: 1500, jefe: 5000
 };
 const RANKING_MAX = 10;
 const MUNDO = { numero: 1, nombre: 'La Red' };   // el mundo 2 llegará próximamente

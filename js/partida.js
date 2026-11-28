@@ -8,6 +8,7 @@
 
 function cargarNivel(indice, reiniciar) {
   const nivel = NIVELES[indice];
+  tema = ZONAS[Math.max(0, zonaDe(indice))];
   mapa = nivel.mapa.map(fila => [...fila]);   // copia editable
   filas = mapa.length;
   cols = mapa[0].length;
@@ -22,7 +23,9 @@ function cargarNivel(indice, reiniciar) {
       mapa[f][c] = AIRE;
     }
   }
+  prepararTeniente(indice);   // lugarteniente al final de cada zona (tenientes.js)
   totalMonedas = mapa.flat().filter(v => v === MONEDA).length;
+  tiempoNivel = 0; golpesNivel = 0;
   monedas = 0;
   if (reiniciar) { bateria = BATERIA.inicial; mejora = null; golpesEscudo = 0; }
   else bateria = Math.max(bateria, BATERIA.inicial);
@@ -44,6 +47,7 @@ function cargarNivel(indice, reiniciar) {
   pintarMejora();
   mostrarAviso(etiqueta(indice) + ' · ' + nivel.nombre.toUpperCase(), 2.2);
   prepararTutorial(indice);
+  prepararControles();
 }
 
 function actualizarContador() {
@@ -101,6 +105,9 @@ function terminar(gana) {
     ? 'Bit se ha quedado sin batería en «' + NIVELES[nivelActual].nombre + '». Los virus siguen sueltos…'
     : ultimo ? 'Malware Smith ha caído: por fin, Bit recibe la Medalla al Honor y asciende a Sheriff Mayor de la Red. Mundo 2: próximamente.'
     : 'Nivel ' + etiqueta(nivelActual) + ' limpio: «' + NIVELES[nivelActual].nombre + '».';
+  const teniente = TENIENTES[nivelActual];
+  if (gana && teniente) document.getElementById('finTexto').textContent = 'Has detenido a ' + teniente.nombre + ', lugarteniente de Malware Smith. Nivel ' + etiqueta(nivelActual) + ' limpio.';
+  pintarEstrellasFin(cerrarNivel(gana));
   document.getElementById('finMonedas').textContent = 'Monedas del nivel: ' + monedas + ' de ' + totalMonedas +
     (gana ? ' · Bonus: +' + bonus + ' (nivel ' + PUNTOS.nivel + ' + ' + bateria + ' × ' + PUNTOS.porRaya + ' por batería)' : '');
   document.getElementById('finPuntos').textContent = 'PUNTOS: ' + partida.puntos;

@@ -29,7 +29,7 @@ const CONTROLES_POR_DEFECTO = {
   cambiarArma: ['Raton2', 'KeyQ', null, 'Boton3'],
   coger:       ['ArrowDown', 'KeyE', 'KeyS', 'Boton1'],
 };
-const RESERVADAS = ['Escape', 'KeyM', 'Backspace', 'Tab', 'Boton9'];   // Boton9 = Start: abre Ajustes
+const RESERVADAS = ['Escape', 'KeyM', 'KeyP', 'Backspace', 'Tab', 'Boton9'];   // Boton9 = Start: abre Ajustes
 const HUECO_MANDO = 3;
 const esCodigoMando = cod => /^(Boton|Eje)/.test(cod || '');
 const copiarControles = c => JSON.parse(JSON.stringify(c));
@@ -107,6 +107,8 @@ function soltar(cod) {
 addEventListener('keydown', e => {
   if (e.target === inputNombre) return;   // escribiendo el nombre del ranking
   if (capturando) { e.preventDefault(); asignarCaptura(e.code); return; }
+  if (pausado) { e.preventDefault(); if (!e.repeat && ['KeyP', 'Escape', 'Enter', 'Space'].includes(e.code)) reanudar(); return; }
+  if (e.code === 'KeyP' && estado === 'jugando' && !ajustesAbiertos()) { pausar(); return; }
   if (e.code === 'Escape') { ajustesAbiertos() ? cerrarAjustes() : abrirAjustes(); return; }
   if (ajustesAbiertos()) return;
   if (e.code === 'KeyM') { if (!e.repeat) musica.alternar(); return; }
@@ -128,7 +130,8 @@ addEventListener('mousedown', e => {
     asignarCaptura('Raton' + e.button);
     return;
   }
-  if (performance.now() - (window.__ultimoTactil || 0) < 800) return;   // clic simulado tras un toque (móvil)
+  if (performance.now() - (window.__ultimoTactil || 0) < 800) return;
+  if (pausado) return;   // clic simulado tras un toque (móvil)
   if (ajustesAbiertos() || !marco.contains(e.target) || e.target.closest('button, input, form, .ajustes, table')) return;
   e.preventDefault();
   const cod = 'Raton' + e.button;

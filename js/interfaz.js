@@ -144,7 +144,9 @@ function mostrarAviso(texto, segundos = 1.8) {
 
 function pintarSelector() {
   document.getElementById('nivelSel').innerHTML = 'NIVEL ' + etiqueta(nivelElegido) +
-    '<small>' + escaparHTML(NIVELES[nivelElegido].nombre) + ' · ' + (nivelElegido + 1) + ' de ' + NIVELES.length + (nivelElegido < nivelMaximo || nivelMaximo === NIVELES.length - 1 ? '' : ' · nuevo') + '</small>';
+    '<small>' + escaparHTML(NIVELES[nivelElegido].nombre) + ' · ' + (nivelElegido + 1) + ' de ' + NIVELES.length + (nivelElegido < nivelMaximo || nivelMaximo === NIVELES.length - 1 ? '' : ' · nuevo') + '</small>' +
+    (typeof estrellas !== 'undefined' ? '<span class="estrellas-sel" title="Nivel · todas las monedas · sin golpes">' + textoEstrellas(estrellas[nivelElegido] || 0) +
+      (typeof records !== 'undefined' && records[nivelElegido] ? ' <i>' + formatoTiempo(records[nivelElegido]) + '</i>' : '') + '</span>' : '');
   document.getElementById('nivelMenos').disabled = nivelElegido <= 0;
   document.getElementById('nivelMas').disabled = nivelElegido >= nivelMaximo;
 }
@@ -262,9 +264,11 @@ document.getElementById('cerrarRanking').addEventListener('click', () => { panel
 
 const barraJefe = document.getElementById('barraJefe');
 function pintarJefe() {
-  const e = enemigos.find(x => x.tipo === 'jefe' && x.activo);
+  const e = enemigos.find(x => (x.tipo === 'jefe' || x.tipo === 'teniente') && x.activo);
   barraJefe.hidden = !e || estado !== 'jugando';
   if (!e) return;
+  const nombre = e.nombre || 'MALWARE SMITH', span = barraJefe.querySelector('span');
+  if (span.textContent !== nombre) span.textContent = nombre;
   document.getElementById('vidaJefe').style.width = Math.max(0, e.vida / e.vidaMax * 100) + '%';
   barraJefe.classList.toggle('fase2', e.fase2);
 }

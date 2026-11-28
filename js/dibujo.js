@@ -16,8 +16,8 @@ function capaRepetida(img, factor, y) {
 
 function dibujarCasilla(v, c, f, x, y) {
   if (v === SUELO) {
-    ctx.fillStyle = PAL.tinta2; ctx.fillRect(x, y, T, T);
-    ctx.fillStyle = PAL.tinta;
+    ctx.fillStyle = tema.suelo[0]; ctx.fillRect(x, y, T, T);
+    ctx.fillStyle = tema.suelo[1];
     ctx.fillRect(x, y + 7, T, 1); ctx.fillRect(x, y + 15, T, 1);
     ctx.fillRect(x + (f % 2 ? 3 : 11), y, 1, 7);
     ctx.fillRect(x + (f % 2 ? 11 : 3), y + 8, 1, 7);
@@ -25,7 +25,7 @@ function dibujarCasilla(v, c, f, x, y) {
     if (!esSolida(c + 1, f)) ctx.fillRect(x + T - 1, y, 1, T);
     if (!esSolida(c, f - 1)) {
       ctx.fillStyle = PAL.lima; ctx.fillRect(x, y, T, 2);
-      ctx.fillStyle = PAL.tinta2; ctx.fillRect(x, y + 2, T, 1);
+      ctx.fillStyle = tema.suelo[0]; ctx.fillRect(x, y + 2, T, 1);
     }
   } else if (v === MONEDA) {
     const bote = Math.round(Math.sin(tiempo * 4 + c * 0.7) * 1.5);
@@ -75,6 +75,7 @@ function dibujarEnemigos(cx, cy) {
       case 'volador':    dibujarImagen(imgVolador[Math.floor(tiempo * 10) % 2], x, y - (anim ? 0 : 1), e.vx < 0); break;
       case 'saltador':   dibujarImagen(imgSaltador[e.enSuelo && e.espera < 0.3 ? 1 : 0], x, y, bit.x < e.x); break;
       case 'cazador':    dibujarImagen(imgCazador[Math.floor(tiempo * 12) % 2], x, y, e.vx < 0); break;
+      case 'teniente':   dibujarTeniente(e, x, y); break;
       case 'jefe': {
         ctx.drawImage(imgJefe[e.fase2 ? 1 : 0], x, y);
         const llama = Math.floor(tiempo * 14) % 2;   // propulsores
@@ -172,6 +173,11 @@ function dibujarProyectiles(cx, cy) {
       ctx.fillStyle = PAL.crema; ctx.fillRect(p.vx > 0 ? x + p.w - 2 : x, y + 1, 2, 1);
       if (p.color === PAL.rojoVivo) { ctx.fillStyle = PAL.dorado; ctx.fillRect(p.vx > 0 ? x - 2 : x + p.w, y + 1, 2, 1); }
     } else {
+      if (p.spam) {   // correo basura: sobre crema con sello fucsia
+        ctx.fillStyle = PAL.crema; ctx.fillRect(x, y, 6, 4);
+        ctx.fillStyle = PAL.fucsia; ctx.fillRect(x + 1, y + 1, 1, 1); ctx.fillRect(x + 4, y + 1, 1, 1); ctx.fillRect(x + 2, y + 2, 2, 1);
+        continue;
+      }
       if (p.grande) {
         ctx.fillStyle = PAL.rojoVivo; ctx.fillRect(x, y + 1, 5, 3); ctx.fillRect(x + 1, y, 3, 5);
         ctx.fillStyle = Math.floor(tiempo * 12) % 2 ? PAL.dorado : PAL.crema; ctx.fillRect(x + 1, y + 1, 3, 3);
@@ -222,11 +228,12 @@ function dibujar() {
   let cx = Math.round(camX), cy = Math.round(camY);
   if (temblor > 0) { cx += Math.round((Math.random() - 0.5) * fuerzaTemblor); cy += Math.round((Math.random() - 0.5) * fuerzaTemblor); }
 
-  ctx.fillStyle = PAL.noche; ctx.fillRect(0, 0, ANCHO, ALTO);
+  ctx.fillStyle = tema.cielo; ctx.fillRect(0, 0, ANCHO, ALTO);   // cada zona tiene su cielo (zonas.js)
   capaRepetida(capaEstrellas, 0.05, 0);
   ctx.drawImage(capaLuna, 262 - Math.floor(camX * 0.02), 14);
-  capaRepetida(capaLejana, 0.2, Math.round(30 - cy * 0.3));
-  capaRepetida(capaCercana, 0.45, Math.round(48 - cy * 0.5));
+  capaRepetida(tema.lejana, 0.2, Math.round(30 - cy * 0.3));
+  capaRepetida(tema.cercana, 0.45, Math.round(48 - cy * 0.5));
+  dibujarAmbiente();
 
   const c0 = Math.floor(cx / T), c1 = Math.floor((cx + ANCHO) / T);
   const f0 = Math.floor(cy / T), f1 = Math.floor((cy + ALTO) / T);
@@ -236,6 +243,7 @@ function dibujar() {
   }
 
   dibujarCarteles(cx, cy);
+  dibujarControles(cx, cy);
   dibujarEnemigos(cx, cy);
   dibujarBit(cx, cy);
   dibujarProyectiles(cx, cy);

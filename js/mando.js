@@ -2,7 +2,8 @@
 // MANDO — juega con un mando (Xbox, PlayStation o genérico) conectado al PC.
 // - Se lee con la Gamepad API en cada fotograma y se convierte en las mismas acciones que el
 //   teclado (pulsadas / pedidas). Los botones se configuran en Ajustes › Controles (columna Mando).
-// - Fijos además de lo configurable: la cruceta mueve (← →), salta (↑) y coge (↓); Start abre Ajustes.
+// - Fijos además de lo configurable: la cruceta mueve (← →), salta (↑) y coge (↓); Start pausa
+//   la partida (en los menús abre Ajustes).
 // - En Ajustes, con el mando: ↑ ↓ eligen fila, LB/RB cambian de pestaña, A cambia el botón de la fila
 //   (luego pulsa el botón nuevo; Start cancela), X restablece, B cierra.
 // - En los menús cualquier botón vale para «pulsa una tecla»; vibra con los golpes si el mando puede.
@@ -105,7 +106,16 @@ function pasoMando() {
     for (const c of nuevos) mandoEnAjustes(c);
     return;
   }
-  if (nuevos.includes('Boton9')) { abrirAjustes(); filaMando = 0; marcarFilaMando(); return; }
+  // Pausa: Start pausa y reanuda; en pausa, A o B continúan e Y abre Ajustes
+  if (pausado) {
+    if (nuevos.some(c => c === 'Boton9' || c === 'Boton0' || c === 'Boton1')) reanudar();
+    else if (nuevos.includes('Boton3')) { reanudar(); abrirAjustes(); filaMando = 0; marcarFilaMando(); }
+    return;
+  }
+  if (nuevos.includes('Boton9')) {
+    if (estado === 'jugando') { for (const a of accionesMando) pulsadas.delete(a); accionesMando.clear(); pausar(); return; }
+    abrirAjustes(); filaMando = 0; marcarFilaMando(); return;
+  }
 
   // Formulario del ranking: A guarda (con el último nombre o «BIT»), B no guarda
   if (esperandoNombre) {

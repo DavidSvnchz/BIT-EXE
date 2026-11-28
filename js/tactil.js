@@ -107,7 +107,7 @@ document.addEventListener('touchmove', e => { if (modoTactil && !e.target.closes
 // Los controles solo se ven durante la partida; ⇄ solo con la espada frame
 function pintarTactil() {
   if (modoTactil) {
-    tactil.classList.toggle('oculto', estado !== 'jugando' || ajustesAbiertos());
+    tactil.classList.toggle('oculto', estado !== 'jugando' || ajustesAbiertos() || pausado);
     document.getElementById('btnArma').hidden = mejora !== 'espada';
   }
   requestAnimationFrame(pintarTactil);

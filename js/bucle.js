@@ -32,6 +32,8 @@ function paso(dt) {
   pasoEfectos(dt);
   pintarJefe();
   pasoTutorial();
+  pasoControles();
+  tiempoNivel += dt;
   pedidas.clear();
   centrarCamara(Math.min(1, dt * 8));
 }
@@ -52,7 +54,7 @@ let ultimo = performance.now(), acumulado = 0;
 function bucle(ahora) {
   const dt = Math.min((ahora - ultimo) / 1000, 0.1) * (opcionesPrueba.velocidad || 1);
   ultimo = ahora;
-  const pausa = ajustesAbiertos() || enVertical();   // en el móvil, en vertical, se pausa
+  const pausa = ajustesAbiertos() || enVertical() || pausado;   // en el móvil, en vertical, se pausa
   if (!pausa) tiempo += dt;
   if (estado === 'jugando' && !pausa && congelado > 0) {   // parón de un instante al golpear
     congelado -= dt; acumulado = 0;
@@ -63,6 +65,7 @@ function bucle(ahora) {
     acumulado = 0;
   }
   dibujar();
+  pintarCrono();
   requestAnimationFrame(bucle);
 }
 
